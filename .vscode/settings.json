@@ -15,5 +15,8 @@
     "editor.formatOnType": true,
     "editor.wordBasedSuggestions": "off",
     "gitlens.codeLens.symbolScopes": ["!Module"]
-  }
+  },
+  "python.testing.pytestArgs": ["."],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true
 }
