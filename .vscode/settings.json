@@ -1,0 +1,19 @@
+{
+  "cSpell.words": [],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "always",
+    "source.organizeImports": "always",
+    "source.removeUnusedImports": "always",
+    "source.addMissingImports": "always"
+  },
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.rulers": [80, 120],
+  "python.analysis.inlayHints.callArgumentNames": "all",
+  "[python]": {
+    "diffEditor.ignoreTrimWhitespace": false,
+    "editor.formatOnType": true,
+    "editor.wordBasedSuggestions": "off",
+    "gitlens.codeLens.symbolScopes": ["!Module"]
+  }
+}
