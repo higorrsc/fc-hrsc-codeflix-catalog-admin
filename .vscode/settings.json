@@ -18,5 +18,7 @@
   },
   "python.testing.pytestArgs": ["."],
   "python.testing.unittestEnabled": false,
-  "python.testing.pytestEnabled": true
+  "python.testing.pytestEnabled": true,
+  "python.analysis.autoSearchPaths": false,
+  "python.analysis.autoImportCompletions": true
 }
