@@ -1,37 +1,26 @@
 import uuid
+from dataclasses import dataclass, field
 
 
+@dataclass
 class Category:
     """
     Represents a category of movies.
     """
 
-    def __init__(
-        self,
-        name: str,
-        id: uuid.UUID = None,
-        description: str = "",
-        is_active: bool = True,
-    ):
-        """
-        Initialize a new Category instance.
+    name: str
+    id: uuid.UUID = field(default_factory=uuid.uuid4)
+    description: str = ""
+    is_active: bool = True
 
-        Args:
-            name (str): The name of the category.
-            id (uuid.UUID, optional): The unique identifier for the category.
-                If not provided, a new UUID will be generated. Defaults to an empty string.
-            description (str, optional): A description of the category.
-                Defaults to an empty string.
-            is_active (bool, optional): Indicates whether the category is active.
-                Defaults to True.
+    def __post_init__(self):
         """
-        self.id = id or uuid.uuid4()
-        self.name = name
-        self.description = description
-        self.is_active = is_active
+        Validate the category after it is created.
 
-        if len(self.name) > 255:
-            raise ValueError("Name must have less then 256 characters")
+        This method is called automatically after the category is created.
+        It validates the category's name and description.
+        """
+        self.__validate()
 
     def __str__(self):
         """
@@ -51,3 +40,48 @@ class Category:
         """
 
         return f"<Category {self.name} ({self.id})>"
+
+    def __eq__(self, other):
+        if not isinstance(other, Category):
+            return False
+
+        return self.id == other.id
+
+    def __validate(self):
+        """
+        Validate the category's name.
+
+        Raises:
+            ValueError: If the name is empty or longer than 255 characters.
+        """
+        if not self.name:
+            raise ValueError("Name cannot be empty")
+
+        if len(self.name) > 255:
+            raise ValueError("Name must have less then 256 characters")
+
+    def update_category(self, name: str, description: str):
+        """
+        Update the name and description of the category.
+
+        Args:
+            name (str): The new name of the category.
+            description (str): The new description of the category.
+        """
+        self.name = name
+        self.description = description
+        self.__validate()
+
+    def activate(self):
+        """
+        Activate the category.
+        """
+        self.is_active = True
+        self.__validate()
+
+    def deactivate(self):
+        """
+        Deactivate the category.
+        """
+        self.is_active = False
+        self.__validate()

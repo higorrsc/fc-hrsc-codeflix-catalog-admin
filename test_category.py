@@ -20,7 +20,17 @@ class TestCategory:
             TypeError,
             match="missing 1 required positional argument",
         ):
-            Category()
+            Category()  # pylint: disable=no-value-for-parameter
+
+    def test_cannot_create_category_with_empty_name(self):
+        """
+        When creating a Category with an empty name, a ValueError is raised.
+        """
+        with pytest.raises(
+            ValueError,
+            match="Name cannot be empty",
+        ):
+            Category("")
 
     def test_name_must_have_less_then_255_characters(self):
         """
@@ -91,3 +101,134 @@ class TestCategory:
         category_id = uuid.uuid4()
         category = Category("Action", category_id)
         assert repr(category) == f"<Category Action ({category_id})>"
+
+
+class TestUpdateCategory:
+    """
+    Test the update_category function.
+    """
+
+    def test_update_category_with_name_and_description(self):
+        """
+        When calling update_category() on a Category instance, passing the name and description,
+        the category's name and description are updated.
+        """
+        category = Category(name="Action", description="Action movies")
+        category.update_category("Adventure", "Adventure movies")
+        assert category.name == "Adventure"
+        assert category.description == "Adventure movies"
+
+    def test_update_category_with_invalid_name_raises_exception(self):
+        """
+        When calling update_category() with a name longer than 255 characters,
+        a ValueError is raised.
+        """
+        category = Category(name="Action", description="Action movies")
+        with pytest.raises(
+            ValueError,
+            match="Name must have less then 256 characters",
+        ):
+            category.update_category("a" * 256, "Adventure movies")
+
+    def test_cannot_update_category_with_empty_name(self):
+        """
+        When calling update_category() with an empty name, a ValueError is raised.
+        """
+        category = Category(name="Action")
+        with pytest.raises(
+            ValueError,
+            match="Name cannot be empty",
+        ):
+            category.update_category("", "Adventure movies")
+
+
+class TestActivateCategory:
+    """
+    Test the activate function.
+    """
+
+    def test_activate_inactive_category(self):
+        """
+        When calling activate() on a Category instance, the category is activated.
+        """
+        category = Category(
+            name="Action",
+            description="Action movies",
+            is_active=False,
+        )
+        category.activate()
+        assert category.is_active is True
+
+    def test_activate_active_category(self):
+        """
+        When calling activate() on a Category instance, the category is not activated.
+        """
+        category = Category(
+            name="Action",
+            description="Action movies",
+            is_active=True,
+        )
+        category.activate()
+        assert category.is_active is True
+
+
+class TestDeactivateCategory:
+    """
+    Test the deactivate function.
+    """
+
+    def test_deactivate_active_category(self):
+        """
+        When calling deactivate() on a Category instance, the category is deactivated.
+        """
+        category = Category(
+            name="Action",
+            description="Action movies",
+            is_active=True,
+        )
+        category.deactivate()
+        assert category.is_active is False
+
+    def test_deactivate_inactive_category(self):
+        """
+        When calling deactivate() on a Category instance, the category is not deactivated.
+        """
+        category = Category(
+            name="Action",
+            description="Action movies",
+            is_active=False,
+        )
+        category.deactivate()
+        assert category.is_active is False
+
+
+class TestEquality:
+    """
+    Test the __eq__ function.
+    """
+
+    def test_category_equality(self):
+        """
+        When creating two Category instances with the same name and id, they are considered equal.
+        """
+        common_id = uuid.uuid4()
+        category1 = Category("Action", common_id)
+        category2 = Category("Action", common_id)
+        assert category1 == category2
+
+    def test_equality_different_classes(self):
+        """
+        When comparing a Category instance with an instance of a different class
+        having the same id, they are not considered equal.
+        """
+
+        class Dummy:
+            """
+            Dummy class to test equality.
+            """
+
+        common_id = uuid.uuid4()
+        category = Category("Action", common_id)
+        dummy = Dummy()
+        dummy.id = common_id
+        assert category != dummy
