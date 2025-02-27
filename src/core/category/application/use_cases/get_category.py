@@ -46,7 +46,7 @@ class GetCategory:
         Returns:
             GetCategoryResponse: The response with the category data.
         """
-        category = self.repository.get_by_id(id=request.id)
+        category = self.repository.get_by_id(category_id=request.id)
 
         if category is None:
             raise CategoryNotFound(f"Category with ID {request.id} not found")

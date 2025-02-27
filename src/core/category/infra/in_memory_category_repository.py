@@ -19,6 +19,7 @@ class InMemoryCategoryRepository(CategoryRepository):
             categories (list, optional): A list of categories to initialize the repository with.
             Defaults to an empty list if not provided.
         """
+
         self.categories = categories or []
 
     def save(self, category: Category) -> None:
@@ -28,9 +29,10 @@ class InMemoryCategoryRepository(CategoryRepository):
         Args:
             category (Category): The category to be saved.
         """
+
         self.categories.append(category)
 
-    def get_by_id(self, id: uuid.UUID) -> Category | None:
+    def get_by_id(self, category_id: uuid.UUID) -> Category | None:
         """
         Retrieve a category by its ID from the in-memory repository.
 
@@ -40,21 +42,37 @@ class InMemoryCategoryRepository(CategoryRepository):
         Returns:
             Category | None: The category with the given ID, or None if it doesn't exist.
         """
+
         for category in self.categories:
-            if category.id == id:
+            if category.id == category_id:
                 return category
 
         return None
 
-    def delete(self, id: uuid.UUID) -> None:
+    def delete(self, category_id: uuid.UUID) -> None:
         """
         Delete a category by its ID from the in-memory repository.
 
         Args:
             id (uuid.UUID): The ID of the category to be deleted.
         """
+
         self.categories = [
-            category for category in self.categories if category.id != id
+            category for category in self.categories if category.id != category_id
         ]
+
+        return None
+
+    def update(self, category: Category) -> None:
+        """
+        Update a category in the in-memory repository.
+
+        Args:
+            category (Category): The category to be updated.
+        """
+
+        for idx, cat in enumerate(self.categories):
+            if cat.id == category.id:
+                self.categories[idx] = category
 
         return None

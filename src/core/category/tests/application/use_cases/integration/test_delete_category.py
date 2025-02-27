@@ -36,9 +36,9 @@ class TestDeleteCategory:
             id=category_action.id,
         )
 
-        assert repository.get_by_id(id=category_action.id) is not None
+        assert repository.get_by_id(category_id=category_action.id) is not None
         use_case.execute(request)
 
-        assert repository.get_by_id(id=category_action.id) is None
+        assert repository.get_by_id(category_id=category_action.id) is None
         assert len(repository.categories) == 1
         assert repository.categories[0].id == category_horror.id
