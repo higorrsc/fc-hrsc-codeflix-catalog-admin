@@ -30,3 +30,13 @@ class CategoryRepository(ABC):
             Category: The category with the given ID, or None if it doesn't exist.
         """
         raise NotImplementedError
+
+    @abstractmethod
+    def delete(self, id):
+        """
+        Delete a category by its ID from the repository.
+
+        Args:
+            id (uuid.UUID): The ID of the category to be deleted.
+        """
+        raise NotImplementedError

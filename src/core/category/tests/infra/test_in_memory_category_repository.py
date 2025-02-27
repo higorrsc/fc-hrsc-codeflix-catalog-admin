@@ -57,3 +57,22 @@ class TestGetById:
             uuid.UUID("d5a9c8f0-6a8d-4a9d-9c4b-9d4a8b9c4d5a")
         )
         assert retrieved_category is None
+
+
+class TestDelete:
+    """
+    Test cases for the in-memory category repository.
+    """
+
+    def test_can_delete_category(self):
+        """
+        Test that a category can be deleted from the in-memory repository by its ID.
+
+        This test verifies that the `delete` method of the `InMemoryCategoryRepository`
+        successfully removes a `Category` instance from its internal category list.
+        """
+        repository = InMemoryCategoryRepository()
+        category = Category(name="Action", description="Action movies")
+        repository.save(category)
+        repository.delete(category.id)
+        assert category not in repository.categories

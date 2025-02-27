@@ -45,3 +45,16 @@ class InMemoryCategoryRepository(CategoryRepository):
                 return category
 
         return None
+
+    def delete(self, id: uuid.UUID) -> None:
+        """
+        Delete a category by its ID from the in-memory repository.
+
+        Args:
+            id (uuid.UUID): The ID of the category to be deleted.
+        """
+        self.categories = [
+            category for category in self.categories if category.id != id
+        ]
+
+        return None
