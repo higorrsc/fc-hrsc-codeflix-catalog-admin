@@ -1,6 +1,9 @@
+import uuid
+
 from src.core.category.application.use_cases.category_repository import (
     CategoryRepository,
 )
+from src.core.category.domain.category import Category
 
 
 class InMemoryCategoryRepository(CategoryRepository):
@@ -18,7 +21,7 @@ class InMemoryCategoryRepository(CategoryRepository):
         """
         self.categories = categories or []
 
-    def save(self, category):
+    def save(self, category: Category) -> None:
         """
         Save a category to the in-memory repository.
 
@@ -26,3 +29,19 @@ class InMemoryCategoryRepository(CategoryRepository):
             category (Category): The category to be saved.
         """
         self.categories.append(category)
+
+    def get_by_id(self, id: uuid.UUID) -> Category | None:
+        """
+        Retrieve a category by its ID from the in-memory repository.
+
+        Args:
+            id (uuid.UUID): The ID of the category to be retrieved.
+
+        Returns:
+            Category | None: The category with the given ID, or None if it doesn't exist.
+        """
+        for category in self.categories:
+            if category.id == id:
+                return category
+
+        return None
