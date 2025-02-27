@@ -1,5 +1,5 @@
 {
-  "cSpell.words": ["pytest"],
+  "cSpell.words": ["pytest", "viewsets"],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "always",
     "source.organizeImports": "always",
