@@ -1,5 +1,6 @@
 import uuid
 from abc import ABC, abstractmethod
+from typing import List
 
 from src.core.category.domain.category import Category
 
@@ -49,5 +50,15 @@ class CategoryRepository(ABC):
 
         Args:
             category (Category): The category to be updated.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def list(self) -> List[Category]:
+        """
+        List all categories from the repository.
+
+        Returns:
+            list[Category]: A list of all categories.
         """
         raise NotImplementedError

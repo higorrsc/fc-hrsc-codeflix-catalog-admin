@@ -1,4 +1,5 @@
 import uuid
+from typing import List
 
 from src.core.category.application.use_cases.category_repository import (
     CategoryRepository,
@@ -76,3 +77,13 @@ class InMemoryCategoryRepository(CategoryRepository):
                 self.categories[idx] = category
 
         return None
+
+    def list(self) -> List[Category]:
+        """
+        List all categories in the in-memory repository.
+
+        Returns:
+            list[Category]: A list of all categories in the repository.
+        """
+
+        return [category for category in self.categories]
