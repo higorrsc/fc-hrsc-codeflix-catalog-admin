@@ -1,6 +1,10 @@
 import uuid
 
 import pytest
+<<<<<<< HEAD
+=======
+from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
+>>>>>>> b0665d6 (feat: add api get category and tests)
 from rest_framework.test import APIClient
 
 from django_project.category_app.repository import DjangoORMCategoryRepository
@@ -115,7 +119,11 @@ class TestRetrieveAPI:
         url = "/api/categories/123456789/"
         response = APIClient().get(url)
 
+<<<<<<< HEAD
         assert response.status_code, 400
+=======
+        assert response.status_code, HTTP_400_BAD_REQUEST
+>>>>>>> b0665d6 (feat: add api get category and tests)
 
     def test_return_category_when_exists(
         self,
@@ -144,7 +152,11 @@ class TestRetrieveAPI:
         }
 
         response = APIClient().get(url)
+<<<<<<< HEAD
         assert response.status_code, 200
+=======
+        assert response.status_code, HTTP_200_OK
+>>>>>>> b0665d6 (feat: add api get category and tests)
         assert response.data, expected_data
 
     def test_return_404_when_category_not_exists(self):
@@ -160,4 +172,8 @@ class TestRetrieveAPI:
         url = f"/api/categories/{uuid.uuid4()}/"
 
         response = APIClient().get(url)
+<<<<<<< HEAD
         assert response.status_code, 404
+=======
+        assert response.status_code, HTTP_404_NOT_FOUND
+>>>>>>> b0665d6 (feat: add api get category and tests)
