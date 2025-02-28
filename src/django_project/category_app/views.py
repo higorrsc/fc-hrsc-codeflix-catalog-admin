@@ -15,7 +15,6 @@ from src.core.category.application.use_cases.list_category import (
     ListCategory,
     ListCategoryRequest,
 )
-from src.core.category.domain.category import Category
 
 
 # Create your views here.

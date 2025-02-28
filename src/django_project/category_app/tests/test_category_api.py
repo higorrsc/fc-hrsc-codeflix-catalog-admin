@@ -1,10 +1,7 @@
 import uuid
 
 import pytest
-<<<<<<< HEAD
-=======
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
->>>>>>> b0665d6 (feat: add api get category and tests)
 from rest_framework.test import APIClient
 
 from django_project.category_app.repository import DjangoORMCategoryRepository
