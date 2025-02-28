@@ -3,6 +3,12 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK
 
+from django_project.category_app.repository import DjangoORMCategoryRepository
+from src.core.category.application.use_cases.list_category import (
+    ListCategory,
+    ListCategoryRequest,
+)
+
 
 # Create your views here.
 class CategoryViewSet(viewsets.ViewSet):
@@ -18,20 +24,21 @@ class CategoryViewSet(viewsets.ViewSet):
                     id, name, description, and active status.
         """
 
+        req = ListCategoryRequest()
+        use_case = ListCategory(DjangoORMCategoryRepository())
+        res = use_case.execute(req)
+
+        categories = [
+            {
+                "id": str(category.id),
+                "name": category.name,
+                "description": category.description,
+                "is_active": category.is_active,
+            }
+            for category in res.data
+        ]
+
         return Response(
-            data=[
-                {
-                    "id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d",
-                    "name": "Category 1",
-                    "description": "Description 1",
-                    "is_active": True,
-                },
-                {
-                    "id": "9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6e",
-                    "name": "Category 2",
-                    "description": "Description 2",
-                    "is_active": True,
-                },
-            ],            
+            data=categories,
             status=HTTP_200_OK,
         )
