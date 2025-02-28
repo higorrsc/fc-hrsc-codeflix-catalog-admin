@@ -1,5 +1,14 @@
 {
-  "cSpell.words": ["pytest", "viewsets"],
+  "cSpell.words": [
+    "codeflix",
+    "Codeflix",
+    "pytest",
+    "rabbitmq",
+    "runserver",
+    "startconsumer",
+    "venv",
+    "viewsets"
+  ],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "always",
     "source.organizeImports": "always",
@@ -20,5 +29,6 @@
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
   "python.analysis.autoSearchPaths": false,
-  "python.analysis.autoImportCompletions": true
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.typeCheckingMode": "standard"
 }
