@@ -1,7 +1,12 @@
 import uuid
 
 import pytest
-from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
+from rest_framework.status import (
+    HTTP_200_OK,
+    HTTP_201_CREATED,
+    HTTP_400_BAD_REQUEST,
+    HTTP_404_NOT_FOUND,
+)
 from rest_framework.test import APIClient
 
 from django_project.category_app.repository import DjangoORMCategoryRepository
@@ -52,7 +57,7 @@ def category_repository() -> DjangoORMCategoryRepository:
 
 
 @pytest.mark.django_db
-class TestCategoryAPI:
+class TestListAPI:
     """
     Test the Category API.
     """
@@ -77,20 +82,22 @@ class TestCategoryAPI:
         category_repository.save(category_tv_show)
 
         url = "/api/categories/"
-        expected_data = [
-            {
-                "id": str(category_movie.id),
-                "name": category_movie.name,
-                "description": category_movie.description,
-                "is_active": category_movie.is_active,
-            },
-            {
-                "id": str(category_tv_show.id),
-                "name": category_tv_show.name,
-                "description": category_tv_show.description,
-                "is_active": category_tv_show.is_active,
-            },
-        ]
+        expected_data = {
+            "data": [
+                {
+                    "id": str(category_movie.id),
+                    "name": category_movie.name,
+                    "description": category_movie.description,
+                    "is_active": category_movie.is_active,
+                },
+                {
+                    "id": str(category_tv_show.id),
+                    "name": category_tv_show.name,
+                    "description": category_tv_show.description,
+                    "is_active": category_tv_show.is_active,
+                },
+            ]
+        }
 
         response = APIClient().get(url)
         assert response.status_code, 200
@@ -138,10 +145,12 @@ class TestRetrieveAPI:
 
         url = f"/api/categories/{category_movie.id}/"
         expected_data = {
-            "id": str(category_movie.id),
-            "name": category_movie.name,
-            "description": category_movie.description,
-            "is_active": category_movie.is_active,
+            "data": {
+                "id": str(category_movie.id),
+                "name": category_movie.name,
+                "description": category_movie.description,
+                "is_active": category_movie.is_active,
+            }
         }
 
         response = APIClient().get(url)
@@ -162,3 +171,74 @@ class TestRetrieveAPI:
 
         response = APIClient().get(url)
         assert response.status_code, HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+class TestCreateAPI:
+    """
+    Test the Create API.
+    """
+
+    def test_when_data_is_invalid_return_400(self):
+        """
+        Test that the API returns 400 when the given data is invalid.
+
+        When the API is called with POST /api/categories/ and the given data is invalid,
+        it should return a 400 error.
+
+        The expected result is a 400 status code.
+        """
+
+        url = "/api/categories/"
+        response = APIClient().post(
+            path=url,
+            data={
+                "name": "",
+                "description": "Movies category",
+            },
+            format="json",
+        )
+
+        assert response.status_code, HTTP_400_BAD_REQUEST
+
+    def test_when_data_is_valid_return_201(
+        self,
+        category_repository: DjangoORMCategoryRepository,
+    ):
+        """
+        Test that the API returns 201 when the given data is valid.
+
+        When the API is called with POST /api/categories/ and the given data is valid,
+        it should return a 201 status code.
+
+        The expected result is a 201 status code.
+        """
+
+        url = "/api/categories/"
+        response = APIClient().post(
+            path=url,
+            data={
+                "name": "Movies",
+                "description": "Movies category",
+            },
+            format="json",
+        )
+
+        assert response.status_code, HTTP_201_CREATED
+        created_category_id = uuid.UUID(response.data["id"])
+        assert category_repository.get_by_id(
+            category_id=created_category_id
+        ) == Category(
+            id=created_category_id,
+            name="Movies",
+            description="Movies category",
+            is_active=True,
+        )
+        assert category_repository.list() == [
+            Category(
+                id=created_category_id,
+                name="Movies",
+                description="Movies category",
+                is_active=True,
+            )
+        ]

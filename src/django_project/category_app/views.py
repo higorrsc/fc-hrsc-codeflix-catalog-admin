@@ -3,10 +3,22 @@ import uuid
 from rest_framework import viewsets
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND
+from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_404_NOT_FOUND
 
 from django_project.category_app.repository import DjangoORMCategoryRepository
+from django_project.category_app.serializers import (
+    CategoryResponseSerializer,
+    CreateCategoryRequestSerializer,
+    CreateCategoryResponseSerializer,
+    ListCategoryResponseSerializer,
+    RetrieveCategoryRequestSerializer,
+    RetrieveCategoryResponseSerializer,
+)
 from src.core.category.application.exceptions import CategoryNotFound
+from src.core.category.application.use_cases.create_category import (
+    CreateCategory,
+    CreateCategoryRequest,
+)
 from src.core.category.application.use_cases.get_category import (
     GetCategory,
     GetCategoryRequest,
@@ -39,18 +51,10 @@ class CategoryViewSet(viewsets.ViewSet):
         use_case = ListCategory(DjangoORMCategoryRepository())
         res = use_case.execute(req)
 
-        categories = [
-            {
-                "id": str(category.id),
-                "name": category.name,
-                "description": category.description,
-                "is_active": category.is_active,
-            }
-            for category in res.data
-        ]
+        serializer = ListCategoryResponseSerializer(instance=res)
 
         return Response(
-            data=categories,
+            data=serializer.data,
             status=HTTP_200_OK,
         )
 
@@ -66,28 +70,45 @@ class CategoryViewSet(viewsets.ViewSet):
             Response: A response object containing the category data.
         """
 
+        serializer = RetrieveCategoryRequestSerializer(data={"id": pk})
+        serializer.is_valid(raise_exception=True)
+
         try:
-            category_id = uuid.UUID(pk)
-            req = GetCategoryRequest(category_id)
+            req = GetCategoryRequest(id=serializer.validated_data["id"])
             use_case = GetCategory(DjangoORMCategoryRepository())
             res = use_case.execute(req)
-        except ValueError:
-            return Response(
-                data={"detail": "Invalid category id"},
-                status=HTTP_400_BAD_REQUEST,
-            )
         except CategoryNotFound:
             return Response(
                 data={"detail": "Category not found"},
                 status=HTTP_404_NOT_FOUND,
             )
 
+        category_output = RetrieveCategoryResponseSerializer(instance=res)
+
         return Response(
-            data={
-                "id": str(res.id),
-                "name": res.name,
-                "description": res.description,
-                "is_active": res.is_active,
-            },
+            data=category_output.data,
             status=HTTP_200_OK,
+        )
+
+    def create(self, request: Request) -> Response:
+        """
+        Create a new category.
+
+        Args:
+            request (Request): The request object containing request data.
+
+        Returns:
+            Response: A response object containing the created category data.
+        """
+
+        serializer = CreateCategoryRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        input = CreateCategoryRequest(**serializer.validated_data)
+        use_case = CreateCategory(DjangoORMCategoryRepository())
+        output = use_case.execute(input)
+
+        return Response(
+            data=CreateCategoryResponseSerializer(instance=output).data,
+            status=HTTP_201_CREATED,
         )
