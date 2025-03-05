@@ -332,3 +332,62 @@ class TestUpdateAPI:
         )
 
         assert response.status_code, HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+class TestDeleteAPI:
+    """
+    Test the Delete API.
+    """
+
+    def test_when_id_is_invalid_return_400(self):
+        """
+        Test that the API returns 400 when the given ID is invalid.
+
+        When the API is called with DELETE /api/categories/<id>/ and the given ID is invalid,
+        it should return a 400 error.
+
+        The expected result is a 400 status code.
+        """
+
+        url = "/api/categories/1234567890/"
+        response = APIClient().delete(url)
+
+        assert response.status_code, HTTP_400_BAD_REQUEST
+        assert response.data == {"id": ["Must be a valid UUID."]}
+
+    def test_when_category_not_exists_return_404(self):
+        """
+        Test that the API returns 404 when the given ID does not exist.
+
+        When the API is called with DELETE /api/categories/<id>/ and the given ID does not exist,
+        it should return a 404 error.
+
+        The expected result is a 404 status code.
+        """
+
+        url = f"/api/categories/{uuid.uuid4()}/"
+        response = APIClient().delete(url)
+
+        assert response.status_code, HTTP_404_NOT_FOUND
+
+    def test_when_category_exists_return_204(
+        self,
+        category_movie: Category,
+        category_repository: DjangoORMCategoryRepository,
+    ):
+        """
+        Test that the API returns 204 when the given ID exists.
+
+        When the API is called with DELETE /api/categories/<id>/ and the given ID exists,
+        it should return a 204 status code.
+
+        The expected result is a 204 status code.
+        """
+
+        category_repository.save(category_movie)
+        url = f"/api/categories/{category_movie.id}/"
+        response = APIClient().delete(url)
+
+        assert response.status_code, HTTP_204_NO_CONTENT
+        assert category_repository.get_by_id(category_movie.id) is None
