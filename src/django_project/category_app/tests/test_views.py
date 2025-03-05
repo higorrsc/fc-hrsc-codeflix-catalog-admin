@@ -391,3 +391,173 @@ class TestDeleteAPI:
 
         assert response.status_code, HTTP_204_NO_CONTENT
         assert category_repository.get_by_id(category_movie.id) is None
+
+
+@pytest.mark.django_db
+class TestPartialUpdateAPI:
+    """
+    Test the Partial Update API.
+    """
+
+    def test_when_payload_is_invalid_return_400(self):
+        """
+        Test that the API returns 400 when the given payload is invalid.
+
+        When the API is called with PATCH /api/categories/<id>/ and the given payload is invalid,
+        it should return a 400 error.
+
+        The expected result is a 400 status code.
+        """
+
+        url = f"/api/categories/1234567890/"
+        response = APIClient().patch(
+            path=url,
+            data={
+                "name": "",
+                "description": "Movies category",
+            },
+            format="json",
+        )
+
+        assert response.status_code, HTTP_400_BAD_REQUEST
+
+    def test_when_category_not_exists_return_404(self):
+        """
+        Test that the API returns 404 when the given ID does not exist.
+
+        When the API is called with PATCH /api/categories/<id>/ and the given ID does not exist,
+        it should return a 404 error.
+
+        The expected result is a 404 status code.
+        """
+
+        url = f"/api/categories/{uuid.uuid4()}/"
+        response = APIClient().patch(
+            path=url,
+            data={
+                "name": "Movies 2",
+                "description": "Movies category updated",
+                "is_active": True,
+            },
+            format="json",
+        )
+
+        assert response.status_code, HTTP_404_NOT_FOUND
+
+    def test_when_category_exists_update_only_name_and_return_204(
+        self,
+        category_movie: Category,
+        category_repository: DjangoORMCategoryRepository,
+    ):
+        """
+        Test that the API returns 204 when the given ID exists and the name is updated.
+
+        When the API is called with PATCH /api/categories/<id>/ and the given ID exists,
+        it should return a 204 status code and update only the name of the category.
+
+        The expected result is a 204 status code.
+        """
+        category_repository.save(category_movie)
+        url = f"/api/categories/{category_movie.id}/"
+        response = APIClient().patch(
+            path=url,
+            data={
+                "name": "Movies 2",
+            },
+        )
+
+        assert response.status_code, HTTP_204_NO_CONTENT
+
+        partial_updated_category = category_repository.get_by_id(category_movie.id)
+        assert partial_updated_category.name == "Movies 2"
+        assert partial_updated_category.description == category_movie.description
+        assert partial_updated_category.is_active == category_movie.is_active
+
+    def test_when_category_exists_update_only_description_and_return_204(
+        self,
+        category_movie: Category,
+        category_repository: DjangoORMCategoryRepository,
+    ):
+        """
+        Test that the API returns 204 when the given ID exists and the description is updated.
+
+        When the API is called with PATCH /api/categories/<id>/ and the given ID exists,
+        it should return a 204 status code and update only the description of the category.
+
+        The expected result is a 204 status code.
+        """
+        category_repository.save(category_movie)
+        url = f"/api/categories/{category_movie.id}/"
+        response = APIClient().patch(
+            path=url,
+            data={
+                "description": "Movies category updated",
+            },
+        )
+
+        assert response.status_code, HTTP_204_NO_CONTENT
+
+        partial_updated_category = category_repository.get_by_id(category_movie.id)
+        assert partial_updated_category.name == category_movie.name
+        assert partial_updated_category.description == "Movies category updated"
+        assert partial_updated_category.is_active == category_movie.is_active
+
+    def test_when_category_exists_update_only_is_active_and_return_204(
+        self,
+        category_movie: Category,
+        category_repository: DjangoORMCategoryRepository,
+    ):
+        """
+        Test that the API returns 204 when the given ID exists and the is_active is updated.
+
+        When the API is called with PATCH /api/categories/<id>/ and the given ID exists,
+        it should return a 204 status code and update only the is_active of the category.
+
+        The expected result is a 204 status code.
+        """
+        category_repository.save(category_movie)
+        url = f"/api/categories/{category_movie.id}/"
+        response = APIClient().patch(
+            path=url,
+            data={
+                "is_active": False,
+            },
+        )
+
+        assert response.status_code, HTTP_204_NO_CONTENT
+
+        partial_updated_category = category_repository.get_by_id(category_movie.id)
+        assert partial_updated_category.name == category_movie.name
+        assert partial_updated_category.description == category_movie.description
+        assert partial_updated_category.is_active == False
+
+    def test_when_category_exists_update_all_fields_and_return_204(
+        self,
+        category_movie: Category,
+        category_repository: DjangoORMCategoryRepository,
+    ):
+        """
+        Test that the API returns 204 when the given ID exists and all fields are updated.
+
+        When the API is called with PATCH /api/categories/<id>/ and the given ID exists,
+        it should return a 204 status code and update all fields of the category.
+
+        The expected result is a 204 status code.
+        """
+        category_repository.save(category_movie)
+        url = f"/api/categories/{category_movie.id}/"
+        response = APIClient().patch(
+            path=url,
+            data={
+                "name": "Movies 2",
+                "description": "Movies category updated",
+                "is_active": False,
+            },
+        )
+
+        assert response.status_code, HTTP_204_NO_CONTENT
+
+        partial_updated_category = category_repository.get_by_id(category_movie.id)
+        assert partial_updated_category.name == "Movies 2"
+        assert partial_updated_category.description == "Movies category updated"
+        assert partial_updated_category.is_active == False
