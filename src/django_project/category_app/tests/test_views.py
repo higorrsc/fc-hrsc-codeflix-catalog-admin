@@ -242,3 +242,93 @@ class TestCreateAPI:
                 is_active=True,
             )
         ]
+
+
+@pytest.mark.django_db
+class TestUpdateAPI:
+    """
+    Test the Update API.
+    """
+
+    def test_when_payload_is_invalid_return_400(self):
+        """
+        Test that the API returns 400 when the given payload is invalid.
+
+        When the API is called with PUT /api/categories/<id>/ and the given payload is invalid,
+        it should return a 400 error.
+
+        The expected result is a 400 status code.
+        """
+
+        url = f"/api/categories/1234567890/"
+        response = APIClient().put(
+            path=url,
+            data={
+                "name": "",
+                "description": "Movies category",
+            },
+            format="json",
+        )
+
+        assert response.status_code, HTTP_400_BAD_REQUEST
+        assert response.data == {
+            "id": ["Must be a valid UUID."],
+            "name": ["This field may not be blank."],
+            "is_active": ["This field is required."],
+        }
+
+    def test_when_payload_is_valid_return_204(
+        self,
+        category_movie: Category,
+        category_repository: DjangoORMCategoryRepository,
+    ):
+        """
+        Test that the API returns 204 when the given payload is valid.
+
+        When the API is called with PUT /api/categories/<id>/ and the given payload is valid,
+        it should return a 204 status code.
+
+        The expected result is a 204 status code.
+        """
+
+        category_repository.save(category_movie)
+        url = f"/api/categories/{category_movie.id}/"
+        response = APIClient().put(
+            path=url,
+            data={
+                "name": "Movies 2",
+                "description": "Movies category updated",
+                "is_active": True,
+            },
+            format="json",
+        )
+
+        assert response.status_code, HTTP_204_NO_CONTENT
+
+        updated_category = category_repository.get_by_id(category_movie.id)
+        assert updated_category.name == "Movies 2"
+        assert updated_category.description == "Movies category updated"
+        assert updated_category.is_active is True
+
+    def test_when_category_not_exists_return_404(self):
+        """
+        Test that the API returns 404 when the given ID does not exist.
+
+        When the API is called with PUT /api/categories/<id>/ and the given ID does not exist,
+        it should return a 404 error.
+
+        The expected result is a 404 status code.
+        """
+
+        url = f"/api/categories/{uuid.uuid4()}/"
+        response = APIClient().put(
+            path=url,
+            data={
+                "name": "Movies 2",
+                "description": "Movies category updated",
+                "is_active": True,
+            },
+            format="json",
+        )
+
+        assert response.status_code, HTTP_404_NOT_FOUND

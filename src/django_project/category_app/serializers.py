@@ -43,7 +43,7 @@ class CreateCategoryRequestSerializer(serializers.Serializer):
     Serializer for create category request
     """
 
-    name = serializers.CharField(max_length=255)
+    name = serializers.CharField(max_length=255, allow_blank=False)
     description = serializers.CharField()
     is_active = serializers.BooleanField(default=True)
 
@@ -54,3 +54,14 @@ class CreateCategoryResponseSerializer(serializers.Serializer):
     """
 
     id = serializers.UUIDField()
+
+
+class UpdateCategoryRequestSerializer(serializers.Serializer):
+    """
+    Serializer for update category request
+    """
+
+    id = serializers.UUIDField()
+    name = serializers.CharField(max_length=255, allow_blank=False)
+    description = serializers.CharField()
+    is_active = serializers.BooleanField()
