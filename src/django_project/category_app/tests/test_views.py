@@ -4,6 +4,7 @@ import pytest
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
+    HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
     HTTP_404_NOT_FOUND,
 )
@@ -100,8 +101,8 @@ class TestListAPI:
         }
 
         response = APIClient().get(url)
-        assert response.status_code, 200
-        assert response.data, expected_data
+        assert response.status_code, 200  # type: ignore
+        assert response.data, expected_data  # type: ignore
 
 
 @pytest.mark.django_db
@@ -123,7 +124,7 @@ class TestRetrieveAPI:
         url = "/api/categories/123456789/"
         response = APIClient().get(url)
 
-        assert response.status_code, HTTP_400_BAD_REQUEST
+        assert response.status_code, HTTP_400_BAD_REQUEST  # type: ignore
 
     def test_return_category_when_exists(
         self,
@@ -154,8 +155,8 @@ class TestRetrieveAPI:
         }
 
         response = APIClient().get(url)
-        assert response.status_code, HTTP_200_OK
-        assert response.data, expected_data
+        assert response.status_code, HTTP_200_OK  # type: ignore
+        assert response.data, expected_data  # type: ignore
 
     def test_return_404_when_category_not_exists(self):
         """
@@ -170,7 +171,7 @@ class TestRetrieveAPI:
         url = f"/api/categories/{uuid.uuid4()}/"
 
         response = APIClient().get(url)
-        assert response.status_code, HTTP_404_NOT_FOUND
+        assert response.status_code, HTTP_404_NOT_FOUND  # type: ignore
 
 
 @pytest.mark.django_db
@@ -199,7 +200,7 @@ class TestCreateAPI:
             format="json",
         )
 
-        assert response.status_code, HTTP_400_BAD_REQUEST
+        assert response.status_code, HTTP_400_BAD_REQUEST  # type: ignore
 
     def test_when_data_is_valid_return_201(
         self,
@@ -224,8 +225,8 @@ class TestCreateAPI:
             format="json",
         )
 
-        assert response.status_code, HTTP_201_CREATED
-        created_category_id = uuid.UUID(response.data["id"])
+        assert response.status_code, HTTP_201_CREATED  # type: ignore
+        created_category_id = uuid.UUID(response.data["id"])  # type: ignore
         assert category_repository.get_by_id(
             category_id=created_category_id
         ) == Category(
@@ -270,8 +271,8 @@ class TestUpdateAPI:
             format="json",
         )
 
-        assert response.status_code, HTTP_400_BAD_REQUEST
-        assert response.data == {
+        assert response.status_code, HTTP_400_BAD_REQUEST  # type: ignore
+        assert response.data == {  # type: ignore
             "id": ["Must be a valid UUID."],
             "name": ["This field may not be blank."],
             "is_active": ["This field is required."],
@@ -303,12 +304,12 @@ class TestUpdateAPI:
             format="json",
         )
 
-        assert response.status_code, HTTP_204_NO_CONTENT
+        assert response.status_code, HTTP_204_NO_CONTENT  # type: ignore
 
         updated_category = category_repository.get_by_id(category_movie.id)
-        assert updated_category.name == "Movies 2"
-        assert updated_category.description == "Movies category updated"
-        assert updated_category.is_active is True
+        assert updated_category.name == "Movies 2"  # type: ignore
+        assert updated_category.description == "Movies category updated"  # type: ignore
+        assert updated_category.is_active is True  # type: ignore
 
     def test_when_category_not_exists_return_404(self):
         """
@@ -331,7 +332,7 @@ class TestUpdateAPI:
             format="json",
         )
 
-        assert response.status_code, HTTP_404_NOT_FOUND
+        assert response.status_code, HTTP_404_NOT_FOUND  # type: ignore
 
 
 @pytest.mark.django_db
@@ -353,8 +354,8 @@ class TestDeleteAPI:
         url = "/api/categories/1234567890/"
         response = APIClient().delete(url)
 
-        assert response.status_code, HTTP_400_BAD_REQUEST
-        assert response.data == {"id": ["Must be a valid UUID."]}
+        assert response.status_code, HTTP_400_BAD_REQUEST  # type: ignore
+        assert response.data == {"id": ["Must be a valid UUID."]}  # type: ignore
 
     def test_when_category_not_exists_return_404(self):
         """
@@ -369,7 +370,7 @@ class TestDeleteAPI:
         url = f"/api/categories/{uuid.uuid4()}/"
         response = APIClient().delete(url)
 
-        assert response.status_code, HTTP_404_NOT_FOUND
+        assert response.status_code, HTTP_404_NOT_FOUND  # type: ignore
 
     def test_when_category_exists_return_204(
         self,
@@ -389,7 +390,7 @@ class TestDeleteAPI:
         url = f"/api/categories/{category_movie.id}/"
         response = APIClient().delete(url)
 
-        assert response.status_code, HTTP_204_NO_CONTENT
+        assert response.status_code, HTTP_204_NO_CONTENT  # type: ignore
         assert category_repository.get_by_id(category_movie.id) is None
 
 
@@ -409,7 +410,7 @@ class TestPartialUpdateAPI:
         The expected result is a 400 status code.
         """
 
-        url = f"/api/categories/1234567890/"
+        url = "/api/categories/1234567890/"
         response = APIClient().patch(
             path=url,
             data={
@@ -419,7 +420,7 @@ class TestPartialUpdateAPI:
             format="json",
         )
 
-        assert response.status_code, HTTP_400_BAD_REQUEST
+        assert response.status_code, HTTP_400_BAD_REQUEST  # type: ignore
 
     def test_when_category_not_exists_return_404(self):
         """
@@ -442,7 +443,7 @@ class TestPartialUpdateAPI:
             format="json",
         )
 
-        assert response.status_code, HTTP_404_NOT_FOUND
+        assert response.status_code, HTTP_404_NOT_FOUND  # type: ignore
 
     def test_when_category_exists_update_only_name_and_return_204(
         self,
@@ -466,12 +467,12 @@ class TestPartialUpdateAPI:
             },
         )
 
-        assert response.status_code, HTTP_204_NO_CONTENT
+        assert response.status_code, HTTP_204_NO_CONTENT  # type: ignore
 
         partial_updated_category = category_repository.get_by_id(category_movie.id)
-        assert partial_updated_category.name == "Movies 2"
-        assert partial_updated_category.description == category_movie.description
-        assert partial_updated_category.is_active == category_movie.is_active
+        assert partial_updated_category.name == "Movies 2"  # type: ignore
+        assert partial_updated_category.description == category_movie.description  # type: ignore
+        assert partial_updated_category.is_active == category_movie.is_active  # type: ignore
 
     def test_when_category_exists_update_only_description_and_return_204(
         self,
@@ -495,12 +496,12 @@ class TestPartialUpdateAPI:
             },
         )
 
-        assert response.status_code, HTTP_204_NO_CONTENT
+        assert response.status_code, HTTP_204_NO_CONTENT  # type: ignore
 
         partial_updated_category = category_repository.get_by_id(category_movie.id)
-        assert partial_updated_category.name == category_movie.name
-        assert partial_updated_category.description == "Movies category updated"
-        assert partial_updated_category.is_active == category_movie.is_active
+        assert partial_updated_category.name == category_movie.name  # type: ignore
+        assert partial_updated_category.description == "Movies category updated"  # type: ignore
+        assert partial_updated_category.is_active == category_movie.is_active  # type: ignore
 
     def test_when_category_exists_update_only_is_active_and_return_204(
         self,
@@ -524,12 +525,12 @@ class TestPartialUpdateAPI:
             },
         )
 
-        assert response.status_code, HTTP_204_NO_CONTENT
+        assert response.status_code, HTTP_204_NO_CONTENT  # type: ignore
 
         partial_updated_category = category_repository.get_by_id(category_movie.id)
-        assert partial_updated_category.name == category_movie.name
-        assert partial_updated_category.description == category_movie.description
-        assert partial_updated_category.is_active == False
+        assert partial_updated_category.name == category_movie.name  # type: ignore
+        assert partial_updated_category.description == category_movie.description  # type: ignore
+        assert partial_updated_category.is_active is False  # type: ignore
 
     def test_when_category_exists_update_all_fields_and_return_204(
         self,
@@ -555,9 +556,9 @@ class TestPartialUpdateAPI:
             },
         )
 
-        assert response.status_code, HTTP_204_NO_CONTENT
+        assert response.status_code, HTTP_204_NO_CONTENT  # type: ignore
 
         partial_updated_category = category_repository.get_by_id(category_movie.id)
-        assert partial_updated_category.name == "Movies 2"
-        assert partial_updated_category.description == "Movies category updated"
-        assert partial_updated_category.is_active == False
+        assert partial_updated_category.name == "Movies 2"  # type: ignore
+        assert partial_updated_category.description == "Movies category updated"  # type: ignore
+        assert partial_updated_category.is_active is False  # type: ignore

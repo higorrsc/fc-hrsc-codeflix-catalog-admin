@@ -30,7 +30,7 @@ class DjangoORMCategoryRepository(CategoryRepository):
             return Category(
                 id=category.id,
                 name=category.name,
-                description=category.description,
+                description=category.description,  # type: ignore
                 is_active=category.is_active,
             )
         except self.category_model.DoesNotExist:
@@ -53,7 +53,7 @@ class DjangoORMCategoryRepository(CategoryRepository):
             Category(
                 id=category.id,
                 name=category.name,
-                description=category.description,
+                description=category.description,  # type: ignore
                 is_active=category.is_active,
             )
             for category in self.category_model.objects.all()

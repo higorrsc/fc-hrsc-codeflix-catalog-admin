@@ -86,7 +86,7 @@ class CategoryViewSet(viewsets.ViewSet):
         serializer.is_valid(raise_exception=True)
 
         try:
-            req = GetCategoryRequest(id=serializer.validated_data["id"])
+            req = GetCategoryRequest(id=serializer.validated_data["id"])  # type: ignore
             use_case = GetCategory(DjangoORMCategoryRepository())
             res = use_case.execute(req)
         except CategoryNotFound:
@@ -116,9 +116,9 @@ class CategoryViewSet(viewsets.ViewSet):
         serializer = CreateCategoryRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
-        input = CreateCategoryRequest(**serializer.validated_data)
+        req = CreateCategoryRequest(**serializer.validated_data)  # type: ignore
         use_case = CreateCategory(DjangoORMCategoryRepository())
-        output = use_case.execute(input)
+        output = use_case.execute(req)
 
         return Response(
             data=CreateCategoryResponseSerializer(instance=output).data,
@@ -145,11 +145,11 @@ class CategoryViewSet(viewsets.ViewSet):
         )
         serializer.is_valid(raise_exception=True)
 
-        input = UpdateCategoryRequest(**serializer.validated_data)
+        req = UpdateCategoryRequest(**serializer.validated_data)  # type: ignore
         use_case = UpdateCategory(DjangoORMCategoryRepository())
 
         try:
-            use_case.execute(input)
+            use_case.execute(req)
         except CategoryNotFound:
             return Response(
                 data={"detail": "Category not found"},
@@ -175,7 +175,7 @@ class CategoryViewSet(viewsets.ViewSet):
         serializer = DeleteCategoryRequestSerializer(data={"id": pk})
         serializer.is_valid(raise_exception=True)
 
-        req = DeleteCategoryRequest(id=pk)
+        req = DeleteCategoryRequest(id=pk)  # type: ignore
         use_case = DeleteCategory(DjangoORMCategoryRepository())
         try:
             use_case.execute(req)
@@ -210,11 +210,11 @@ class CategoryViewSet(viewsets.ViewSet):
         )
         serializer.is_valid(raise_exception=True)
 
-        input = UpdateCategoryRequest(**serializer.validated_data)
+        req = UpdateCategoryRequest(**serializer.validated_data)  # type: ignore
         use_case = UpdateCategory(DjangoORMCategoryRepository())
 
         try:
-            use_case.execute(input)
+            use_case.execute(req)
         except CategoryNotFound:
             return Response(
                 data={"detail": "Category not found"},
