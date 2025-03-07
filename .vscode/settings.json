@@ -18,17 +18,17 @@
   "editor.formatOnSave": true,
   "editor.formatOnPaste": true,
   "editor.rulers": [80, 120],
-  "python.analysis.inlayHints.callArgumentNames": "all",
   "[python]": {
     "diffEditor.ignoreTrimWhitespace": false,
     "editor.formatOnType": true,
     "editor.wordBasedSuggestions": "off",
     "gitlens.codeLens.symbolScopes": ["!Module"]
   },
-  "python.testing.pytestArgs": ["."],
-  "python.testing.unittestEnabled": false,
-  "python.testing.pytestEnabled": true,
   "python.analysis.autoSearchPaths": false,
   "python.analysis.autoImportCompletions": true,
-  "python.analysis.typeCheckingMode": "standard"
+  "python.analysis.inlayHints.callArgumentNames": "all",
+  "python.analysis.typeCheckingMode": "standard",
+  "python.testing.pytestArgs": ["."],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true
 }
