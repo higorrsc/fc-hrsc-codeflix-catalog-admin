@@ -21,4 +21,4 @@ class Genre(models.Model):
     class Meta:
         verbose_name = "Genre"
         verbose_name_plural = "Genres"
-        db_table = "genres"
+        db_table = "genre"
