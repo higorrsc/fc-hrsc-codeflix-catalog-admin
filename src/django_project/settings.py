@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     # third-party apps
     "rest_framework",
+    "django_extensions",
     # internal apps
     "src.django_project.category_app",
     "src.django_project.genre_app",

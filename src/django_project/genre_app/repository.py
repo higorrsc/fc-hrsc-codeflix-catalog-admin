@@ -13,9 +13,6 @@ class DjangoORMGenreRepository(GenreRepository):
     Django ORM implementation of the GenreRepository interface.
     """
 
-    def __init__(self, genre_model: GenreORM | None = None):
-        self.genre_model = genre_model or GenreORM
-
     def save(self, genre: Genre):
         """
         Save a genre to the repository.
@@ -42,7 +39,18 @@ class DjangoORMGenreRepository(GenreRepository):
         Returns:
             Genre: The genre with the given ID, or None if it doesn't exist.
         """
-        raise NotImplementedError
+
+        try:
+            genre_model = GenreORM.objects.get(pk=genre_id)
+        except GenreORM.DoesNotExist:
+            return None
+
+        return Genre(
+            id=genre_model.id,
+            name=genre_model.name,
+            is_active=genre_model.is_active,
+            categories={category.id for category in genre_model.categories.all()},
+        )
 
     def delete(self, genre_id: uuid.UUID):
         """
@@ -51,7 +59,11 @@ class DjangoORMGenreRepository(GenreRepository):
         Args:
             id (uuid.UUID): The ID of the genre to be deleted.
         """
-        raise NotImplementedError
+
+        try:
+            GenreORM.objects.filter(pk=genre_id).delete()
+        except GenreORM.DoesNotExist:
+            return None
 
     def update(self, genre: Genre):
         """
@@ -60,7 +72,17 @@ class DjangoORMGenreRepository(GenreRepository):
         Args:
             genre (Genre): The genre to be updated.
         """
-        raise NotImplementedError
+
+        try:
+            genre_model = GenreORM.objects.get(pk=genre.id)
+        except GenreORM.DoesNotExist:
+            return None
+
+        with transaction.atomic():
+            genre_model.name = genre.name
+            genre_model.is_active = genre.is_active
+            genre_model.save()
+            genre_model.categories.set(genre.categories)
 
     def list(self) -> List[Genre]:
         """
@@ -69,4 +91,13 @@ class DjangoORMGenreRepository(GenreRepository):
         Returns:
             list[Genre]: A list of all categories.
         """
-        raise NotImplementedError
+
+        return [
+            Genre(
+                id=genre.id,
+                name=genre.name,
+                is_active=genre.is_active,
+                categories={category.id for category in genre.categories.all()},
+            )
+            for genre in GenreORM.objects.all()
+        ]
