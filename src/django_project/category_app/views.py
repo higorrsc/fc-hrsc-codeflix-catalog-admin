@@ -8,16 +8,6 @@ from rest_framework.status import (
     HTTP_404_NOT_FOUND,
 )
 
-from django_project.category_app.repository import DjangoORMCategoryRepository
-from django_project.category_app.serializers import (
-    CreateCategoryRequestSerializer,
-    CreateCategoryResponseSerializer,
-    DeleteCategoryRequestSerializer,
-    ListCategoryResponseSerializer,
-    RetrieveCategoryRequestSerializer,
-    RetrieveCategoryResponseSerializer,
-    UpdateCategoryRequestSerializer,
-)
 from src.core.category.application.exceptions import CategoryNotFound
 from src.core.category.application.use_cases.create_category import (
     CreateCategory,
@@ -38,6 +28,16 @@ from src.core.category.application.use_cases.list_category import (
 from src.core.category.application.use_cases.update_category import (
     UpdateCategory,
     UpdateCategoryRequest,
+)
+from src.django_project.category_app.repository import DjangoORMCategoryRepository
+from src.django_project.category_app.serializers import (
+    CreateCategoryRequestSerializer,
+    CreateCategoryResponseSerializer,
+    DeleteCategoryRequestSerializer,
+    ListCategoryResponseSerializer,
+    RetrieveCategoryRequestSerializer,
+    RetrieveCategoryResponseSerializer,
+    UpdateCategoryRequestSerializer,
 )
 
 
