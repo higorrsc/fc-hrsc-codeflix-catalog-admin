@@ -58,7 +58,8 @@ def documentary_category() -> Category:
 
 @pytest.fixture
 def mock_category_repository_with_categories(
-    movie_category: Category, documentary_category: Category
+    movie_category: Category,
+    documentary_category: Category,
 ) -> CategoryRepository:
     """
     Fixture for a mock CategoryRepository instance that contains the movie and
