@@ -1,6 +1,25 @@
 from rest_framework import serializers
 
 
+class SetField(serializers.ListField):
+    """
+    Serializer for set field
+    """
+
+    def to_internal_value(self, data):  # type: ignore
+        """
+        Override to_internal_value to convert the list of uuids to a set
+        """
+        return set(super().to_internal_value(data))
+
+    def to_representation(self, data):
+        """
+        Override to_representation to convert the set of uuids to a list.
+        """
+
+        return list(super().to_representation(data))
+
+
 class GenreResponseSerializer(serializers.Serializer):
     """
     Serializer for genre response
@@ -20,22 +39,6 @@ class ListGenreResponseSerializer(serializers.Serializer):
     data = GenreResponseSerializer(many=True)  # type: ignore
 
 
-class RetrieveGenreResponseSerializer(serializers.Serializer):
-    """
-    Serializer for retrieve genre response
-    """
-
-    data = GenreResponseSerializer(source="*")  # type: ignore
-
-
-class RetrieveGenreRequestSerializer(serializers.Serializer):
-    """
-    Serializer for retrieve genre request
-    """
-
-    id = serializers.UUIDField()
-
-
 class CreateGenreRequestSerializer(serializers.Serializer):
     """
     Serializer for create genre request
@@ -43,7 +46,7 @@ class CreateGenreRequestSerializer(serializers.Serializer):
 
     name = serializers.CharField(max_length=255, allow_blank=False)
     is_active = serializers.BooleanField(default=True)
-    categories = serializers.ListField(child=serializers.UUIDField())
+    categories = SetField(child=serializers.UUIDField(), required=False)
 
 
 class CreateGenreResponseSerializer(serializers.Serializer):

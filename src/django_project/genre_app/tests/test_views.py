@@ -1,5 +1,7 @@
+import uuid
+
 import pytest
-from rest_framework.status import HTTP_200_OK
+from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST
 from rest_framework.test import APIClient
 
 from src.core.category.domain.category import Category
@@ -182,3 +184,74 @@ class TestListAPI:
         assert response.data["data"][1]["name"] == "Drama"  # type: ignore
         assert response.data["data"][1]["is_active"] is True  # type: ignore
         assert response.data["data"][1]["categories"] == []  # type: ignore
+
+
+@pytest.mark.django_db
+class TestCreateAPI:
+    """
+    Class for testing the CreateGenreAPI view.
+    """
+
+    def test_create_genre_with_associated_categories(
+        self,
+        movie_category: Category,
+        documentary_category: Category,
+        category_repository: DjangoORMCategoryRepository,
+        genre_repository: DjangoORMGenreRepository,
+    ):
+        url = "/api/genres/"
+        data = {
+            "name": "Anime",
+            "categories": [
+                str(movie_category.id),
+                str(documentary_category.id),
+            ],
+        }
+        response = APIClient().post(
+            path=url,
+            data=data,
+            format="json",
+        )
+
+        assert response.status_code == HTTP_201_CREATED  # type: ignore
+        assert response.data["id"]  # type: ignore
+
+        genre_model = genre_repository.get_by_id(genre_id=response.data["id"])  # type: ignore
+        assert genre_model.id == uuid.UUID(response.data["id"])  # type: ignore
+        assert genre_model.name == "Anime"  # type: ignore
+        assert genre_model.is_active is True  # type: ignore
+        assert genre_model == Genre(
+            id=genre_model.id,  # type: ignore
+            name=genre_model.name,  # type: ignore
+            is_active=genre_model.is_active,  # type: ignore
+            categories={category.id for category in genre_model.categories},  # type: ignore
+        )
+
+    def test_create_genre_without_name(self):
+        url = "/api/genres/"
+        data = {
+            "name": "",
+        }
+        response = APIClient().post(
+            path=url,
+            data=data,
+            format="json",
+        )
+
+        assert response.status_code == HTTP_400_BAD_REQUEST  # type: ignore
+        assert response.data == {"name": ["This field may not be blank."]}  # type: ignore
+
+    def test_create_genre_with_invalid_categories(self):
+        url = "/api/genres/"
+        data = {
+            "name": "Anime",
+            "categories": [uuid.uuid4()],
+        }
+        response = APIClient().post(
+            path=url,
+            data=data,
+            format="json",
+        )
+
+        assert response.status_code == HTTP_400_BAD_REQUEST  # type: ignore
+        assert "Categories with provided IDs not found" in response.data["error"]  # type: ignore
