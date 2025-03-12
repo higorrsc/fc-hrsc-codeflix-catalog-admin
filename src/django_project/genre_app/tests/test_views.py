@@ -241,7 +241,7 @@ class TestCreateAPI:
             id=genre_model.id,  # type: ignore
             name=genre_model.name,  # type: ignore
             is_active=genre_model.is_active,  # type: ignore
-            categories={category.id for category in genre_model.categories},  # type: ignore
+            categories=set(genre_model.categories),  # type: ignore
         )
 
     def test_create_genre_without_name(self):
