@@ -85,7 +85,7 @@ class TesteCreateGenre:
         )
         input = CreateGenre.Input(
             name="Action",
-            category_ids={movie_category.id, documentary_category.id},
+            categories={movie_category.id, documentary_category.id},
         )
 
         output = use_case.execute(input)
@@ -96,7 +96,7 @@ class TesteCreateGenre:
         saved_genre = genre_repository.get_by_id(output.id)
         assert saved_genre.name == input.name  # type: ignore
         assert saved_genre.is_active is True  # type: ignore
-        assert saved_genre.categories == input.category_ids  # type: ignore
+        assert saved_genre.categories == input.categories  # type: ignore
 
     def test_create_genre_with_inexistent_categories_raise_an_error(
         self,
@@ -121,7 +121,7 @@ class TesteCreateGenre:
         )
         input = CreateGenre.Input(
             name="Action",
-            category_ids={
+            categories={
                 uuid.uuid4(),
                 uuid.uuid4(),
             },
@@ -131,7 +131,7 @@ class TesteCreateGenre:
             use_case.execute(input)
 
         assert len(genre_repository.list()) == 0
-        assert str(input.category_ids) in str(exc_info.value)
+        assert str(input.categories) in str(exc_info.value)
 
     def test_create_genre_without_categories(self):
         """
