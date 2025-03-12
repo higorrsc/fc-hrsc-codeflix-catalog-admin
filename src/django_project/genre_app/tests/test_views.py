@@ -1,7 +1,13 @@
 import uuid
 
 import pytest
-from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST
+from rest_framework.status import (
+    HTTP_200_OK,
+    HTTP_201_CREATED,
+    HTTP_204_NO_CONTENT,
+    HTTP_400_BAD_REQUEST,
+    HTTP_404_NOT_FOUND,
+)
 from rest_framework.test import APIClient
 
 from src.core.category.domain.category import Category
@@ -199,6 +205,17 @@ class TestCreateAPI:
         category_repository: DjangoORMCategoryRepository,
         genre_repository: DjangoORMGenreRepository,
     ):
+        """
+        Test that the API returns 201 when creating a genre with associated categories.
+
+        When the API is called with POST /api/genres/ and the given data is valid,
+        it should return a 201 status code and create a new genre in the database
+        with the given name and associated categories.
+
+        The expected result is a 201 status code and that the genre is successfully
+        created in the database with the correct data.
+        """
+
         url = "/api/genres/"
         data = {
             "name": "Anime",
@@ -228,6 +245,17 @@ class TestCreateAPI:
         )
 
     def test_create_genre_without_name(self):
+        """
+        Test that the API returns 400 when creating a genre without a name.
+
+        When the API is called with POST /api/genres/ and the given data is
+        invalid because the name is empty, it should return a 400 status code and
+        an error message indicating that the name is required.
+
+        The expected result is a 400 status code and an error message indicating
+        that the name is required.
+        """
+
         url = "/api/genres/"
         data = {
             "name": "",
@@ -242,6 +270,17 @@ class TestCreateAPI:
         assert response.data == {"name": ["This field may not be blank."]}  # type: ignore
 
     def test_create_genre_with_invalid_categories(self):
+        """
+        Test that the API returns 400 when creating a genre with invalid category IDs.
+
+        When the API is called with POST /api/genres/ and the given category IDs do not
+        exist in the repository, it should return a 400 status code and an error message
+        indicating that the categories with the provided IDs were not found.
+
+        The expected result is a 400 status code and an error message indicating that
+        the categories with the provided IDs were not found.
+        """
+
         url = "/api/genres/"
         data = {
             "name": "Anime",
@@ -255,3 +294,67 @@ class TestCreateAPI:
 
         assert response.status_code == HTTP_400_BAD_REQUEST  # type: ignore
         assert "Categories with provided IDs not found" in response.data["error"]  # type: ignore
+
+
+@pytest.mark.django_db
+class TestDeleteAPI:
+    """
+    Class for testing the DeleteGenreAPI view.
+    """
+
+    def test_when_genre_not_exists_return_404(self):
+        """
+        Test that the API returns 404 when the given genre ID does not exist.
+
+        When the API is called with DELETE /api/genres/<id>/ and the given genre ID
+        does not exist, it should return a 404 error with a specific error message.
+
+        The expected result is a 404 status code and an error message indicating
+        that the genre was not found.
+        """
+
+        url = f"/api/genres/{uuid.uuid4()}/"
+        response = APIClient().delete(url)
+
+        assert response.status_code == HTTP_404_NOT_FOUND  # type: ignore
+        assert response.data == {"error": "Genre not found"}  # type: ignore
+
+    def test_when_genre_id_is_invalid_return_400(self):
+        """
+        Test that the API returns 400 when the given genre ID is invalid.
+
+        When the API is called with DELETE /api/genres/<id>/ and the given genre ID
+        is invalid, it should return a 400 error with a specific error message.
+
+        The expected result is a 400 status code and an error message indicating
+        that the genre ID is invalid.
+        """
+
+        url = "/api/genres/1234567890/"
+        response = APIClient().delete(url)
+
+        assert response.status_code == HTTP_400_BAD_REQUEST  # type: ignore
+
+    def test_when_genre_is_deleted_return_204(
+        self,
+        genre_repository: DjangoORMGenreRepository,
+    ):
+        """
+        Test that the API returns 204 when the given genre ID exists and is deleted.
+
+        When the API is called with DELETE /api/genres/<id>/ and the given genre ID
+        exists, it should return a 204 status code and delete the genre from the
+        database.
+
+        The expected result is a 204 status code and that the genre is no longer
+        found in the database.
+        """
+        genre = Genre(name="Romance", is_active=False)
+        genre_repository.save(genre)
+
+        url = f"/api/genres/{genre.id}/"
+        response = APIClient().delete(url)
+        assert response.status_code == HTTP_204_NO_CONTENT  # type: ignore
+
+        genre_model = genre_repository.get_by_id(genre_id=genre.id)
+        assert genre_model is None

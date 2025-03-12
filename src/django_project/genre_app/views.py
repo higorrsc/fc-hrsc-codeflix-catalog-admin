@@ -1,19 +1,28 @@
 from rest_framework import viewsets
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST
+from rest_framework.status import (
+    HTTP_200_OK,
+    HTTP_201_CREATED,
+    HTTP_204_NO_CONTENT,
+    HTTP_400_BAD_REQUEST,
+    HTTP_404_NOT_FOUND,
+)
 
 from src.core.genre.application.exceptions import (
+    GenreNotFound,
     InvalidGenre,
     RelatedCategoriesNotFound,
 )
 from src.core.genre.application.use_cases.create_genre import CreateGenre
+from src.core.genre.application.use_cases.delete_genre import DeleteGenre
 from src.core.genre.application.use_cases.list_genre import ListGenre
 from src.django_project.category_app.repository import DjangoORMCategoryRepository
 from src.django_project.genre_app.repository import DjangoORMGenreRepository
 from src.django_project.genre_app.serializers import (
     CreateGenreRequestSerializer,
     CreateGenreResponseSerializer,
+    DeleteGenreRequestSerializer,
     ListGenreResponseSerializer,
 )
 
@@ -113,34 +122,34 @@ class GenreViewSet(viewsets.ViewSet):
     #         status=HTTP_204_NO_CONTENT,
     #     )
 
-    # def destroy(self, request: Request, pk: None) -> Response:
-    #     """
-    #     Delete a genre by its id.
+    def destroy(self, request: Request, pk: None) -> Response:
+        """
+        Delete a genre by its id.
 
-    #     Args:
-    #         request (Request): The request object containing request data.
-    #         pk (uuid.UUID): The id of the genre to be deleted.
+        Args:
+            request (Request): The request object containing request data.
+            pk (uuid.UUID): The id of the genre to be deleted.
 
-    #     Returns:
-    #         Response: A response object containing the deleted genre data.
-    #     """
+        Returns:
+            Response: A response object containing the deleted genre data.
+        """
 
-    #     serializer = DeleteGenreRequestSerializer(data={"id": pk})
-    #     serializer.is_valid(raise_exception=True)
+        serializer = DeleteGenreRequestSerializer(data={"id": pk})
+        serializer.is_valid(raise_exception=True)
 
-    #     req = DeleteGenreRequest(id=pk)  # type: ignore
-    #     use_case = DeleteGenre(DjangoORMGenreRepository())
-    #     try:
-    #         use_case.execute(req)
-    #     except GenreNotFound:
-    #         return Response(
-    #             data={"detail": "Genre not found"},
-    #             status=HTTP_404_NOT_FOUND,
-    #         )
+        req = DeleteGenre.Input(id=pk)  # type: ignore
+        use_case = DeleteGenre(DjangoORMGenreRepository())
+        try:
+            use_case.execute(req)
+        except GenreNotFound:
+            return Response(
+                data={"error": "Genre not found"},
+                status=HTTP_404_NOT_FOUND,
+            )
 
-    #     return Response(
-    #         status=HTTP_204_NO_CONTENT,
-    #     )
+        return Response(
+            status=HTTP_204_NO_CONTENT,
+        )
 
     # def partial_update(self, request: Request, pk: None) -> Response:
     #     """
