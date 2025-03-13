@@ -9,6 +9,10 @@ from src.core.genre.domain.genre import Genre
 
 
 class CreateGenre:
+    """
+    Create a new genre with the given name and categories.
+    """
+
     def __init__(
         self,
         genre_repository,
