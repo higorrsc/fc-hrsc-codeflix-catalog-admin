@@ -16,7 +16,7 @@ from src.core.genre.domain.genre import Genre
 from src.core.genre.infra.in_memory_genre_repository import InMemoryGenreRepository
 
 
-class TestDeleteGenre:
+class TestUpdateGenre:
     """
     Test class for the `update_genre` use case.
     """
@@ -40,7 +40,7 @@ class TestDeleteGenre:
                     id=uuid.uuid4(),
                     name="Horror",
                     is_active=True,
-                    category_ids=set(),
+                    categories=set(),
                 )
             )
 
@@ -71,7 +71,7 @@ class TestDeleteGenre:
                     id=genre_id,
                     name="",
                     is_active=False,
-                    category_ids=set(),
+                    categories=set(),
                 )
             )
 
@@ -100,14 +100,14 @@ class TestDeleteGenre:
 
         with pytest.raises(
             RelatedCategoriesNotFound,
-            match="Categories not found: .*",
+            match="Categories with provided IDs not found: .*",
         ):
             use_case.execute(
                 input=UpdateGenre.Input(
                     id=genre_id,
                     name="Horror",
                     is_active=True,
-                    category_ids={uuid.uuid4()},
+                    categories={uuid.uuid4()},
                 )
             )
 
@@ -161,7 +161,7 @@ class TestDeleteGenre:
                 id=genre_id,
                 name="Horror Updated",
                 is_active=False,
-                category_ids={movie_category.id},
+                categories={movie_category.id},
             )
         )
 
