@@ -140,7 +140,7 @@ def mock_category_repository_with_categories(
     return repository
 
 
-class TestDeleteGenre:
+class TestUpdateGenre:
     """
     Test suite for the UpdateGenre use case.
     """
@@ -169,7 +169,7 @@ class TestDeleteGenre:
                     id=uuid.uuid4(),
                     name="Horror",
                     is_active=True,
-                    category_ids=set(),
+                    categories=set(),
                 )
             )
 
@@ -205,7 +205,7 @@ class TestDeleteGenre:
                     id=uuid.uuid4(),
                     name="",
                     is_active=True,
-                    category_ids=set(),
+                    categories=set(),
                 )
             )
 
@@ -232,14 +232,14 @@ class TestDeleteGenre:
         mock_genre_repository.get_by_id.return_value = horror_genre  # type: ignore
         with pytest.raises(
             RelatedCategoriesNotFound,
-            match="Categories not found: .*",
+            match="Categories with provided IDs not found: .*",
         ):
             use_case.execute(
                 input=UpdateGenre.Input(
                     id=horror_genre.id,
                     name=horror_genre.name,
                     is_active=True,
-                    category_ids={uuid.uuid4()},
+                    categories={uuid.uuid4()},
                 )
             )
 
@@ -271,7 +271,7 @@ class TestDeleteGenre:
                 id=genre_id,
                 name="Horror Updated",
                 is_active=False,
-                category_ids={
+                categories={
                     movie_category.id,
                     documentary_category.id,
                 },

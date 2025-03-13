@@ -39,7 +39,7 @@ class UpdateGenre:
         id: uuid.UUID
         name: str
         is_active: bool
-        category_ids: set[uuid.UUID] = field(default_factory=set)
+        categories: set[uuid.UUID] = field(default_factory=set)
 
     @dataclass
     class Output:
@@ -69,6 +69,12 @@ class UpdateGenre:
 
         current_name = genre.name
 
+        categories = {category.id for category in self.category_repository.list()}
+        if not input.categories.issubset(categories):
+            raise RelatedCategoriesNotFound(
+                f"Categories with provided IDs not found: {input.categories - categories}"
+            )
+
         try:
             if input.name is not None:
                 current_name = input.name
@@ -81,16 +87,12 @@ class UpdateGenre:
             if input.is_active is False:
                 genre.deactivate()
 
+            genre.categories = input.categories
+
         except ValueError as err:
             raise InvalidGenre(err) from err
 
-        category_ids = {category.id for category in self.category_repository.list()}
-        if not input.category_ids.issubset(category_ids):
-            raise RelatedCategoriesNotFound(
-                f"Categories not found: {input.category_ids - category_ids}"
-            )
-
-        genre.categories = input.category_ids
+        self.genre_repository.update(genre)
 
         return self.Output(
             id=genre.id,

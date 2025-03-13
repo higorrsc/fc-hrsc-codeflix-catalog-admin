@@ -358,3 +358,156 @@ class TestDeleteAPI:
 
         genre_model = genre_repository.get_by_id(genre_id=genre.id)
         assert genre_model is None
+
+
+@pytest.mark.django_db
+class TestUpdateAPI:
+    """
+    Class for testing the UpdateGenreAPI view.
+    """
+
+    def test_when_request_data_is_valid_then_update_genre(
+        self,
+        genre_repository: DjangoORMGenreRepository,
+        movie_category: Category,
+        category_repository: DjangoORMCategoryRepository,
+    ):
+        """
+        Test that the API returns 204 when the given genre ID exists and the request
+        data is valid.
+
+        When the API is called with PUT /api/genres/<id>/ and the given genre ID exists,
+        it should return a 204 status code and update the genre in the database with
+        the given data.
+
+        The expected result is a 204 status code and that the genre is successfully
+        updated in the database with the correct data.
+        """
+
+        genre = Genre(name="Horror", is_active=False)
+        genre_repository.save(genre)
+
+        data = {
+            "name": "Anime",
+            "is_active": True,
+            "categories": [
+                str(movie_category.id),
+            ],
+        }
+
+        url = f"/api/genres/{genre.id}/"
+        response = APIClient().put(
+            path=url,
+            data=data,
+            format="json",
+        )
+
+        assert response.status_code == HTTP_204_NO_CONTENT  # type: ignore
+
+        genre_model = genre_repository.get_by_id(genre_id=genre.id)
+        assert genre_model == Genre(
+            id=genre.id,
+            name="Anime",
+            is_active=True,
+            categories=set(genre_model.categories),  # type: ignore
+        )
+
+    def test_when_request_data_is_invalid_then_return_400(
+        self,
+        genre_repository: DjangoORMGenreRepository,
+        movie_category: Category,
+        category_repository: DjangoORMCategoryRepository,
+    ):
+        """
+        Test that the API returns 400 when the given request data is invalid.
+
+        When the API is called with PUT /api/genres/<id>/ and the given request data
+        is invalid, it should return a 400 error with a specific error message.
+
+        The expected result is a 400 status code and an error message indicating
+        that the genre name can not be blank.
+        """
+
+        genre = Genre(name="Romance", is_active=False)
+        genre_repository.save(genre)
+
+        data = {
+            "name": "",
+            "is_active": True,
+            "categories": [
+                str(movie_category.id),
+            ],
+        }
+
+        url = f"/api/genres/{genre.id}/"
+        response = APIClient().put(
+            path=url,
+            data=data,
+            format="json",
+        )
+
+        assert response.status_code == HTTP_400_BAD_REQUEST  # type: ignore
+        assert response.data == {"name": ["This field may not be blank."]}  # type: ignore
+
+    def test_when_related_categories_do_not_exist_then_return_400(
+        self,
+        genre_repository: DjangoORMGenreRepository,
+    ):
+        """
+        Test that the API returns 400 when the given request data contains
+        a non-existent category ID.
+
+        When the API is called with PUT /api/genres/<id>/ and the given request data
+        contains a non-existent category ID, it should return a 400 error with a
+        specific error message indicating that the related categories were not found.
+
+        The expected result is a 400 status code and an error message indicating
+        that the related categories were not found.
+        """
+
+        genre = Genre(name="Horror", is_active=False)
+        genre_repository.save(genre)
+
+        data = {
+            "name": "Anime",
+            "is_active": True,
+            "categories": [uuid.uuid4()],
+        }
+
+        url = f"/api/genres/{genre.id}/"
+        response = APIClient().put(
+            path=url,
+            data=data,
+            format="json",
+        )
+
+        assert response.status_code == HTTP_400_BAD_REQUEST  # type: ignore
+        assert response.data == {"error": "Related categories not found"}  # type: ignore
+
+    def test_when_genre_does_not_exist_then_return_404(self):
+        """
+        Test that the API returns 404 when attempting to update a genre that does not exist.
+
+        This test sends a PUT request to the /api/genres/<id>/ endpoint with a non-existent
+        genre ID. The expected result is a 404 status code and an error message indicating
+        that the genre was not found.
+
+        The test verifies that the API correctly handles cases where the specified genre ID
+        does not exist in the database.
+        """
+
+        data = {
+            "name": "Anime",
+            "is_active": True,
+            "categories": [uuid.uuid4()],
+        }
+
+        url = f"/api/genres/{uuid.uuid4()}/"
+        response = APIClient().put(
+            path=url,
+            data=data,
+            format="json",
+        )
+
+        assert response.status_code == HTTP_404_NOT_FOUND  # type: ignore
+        assert response.data == {"error": "Genre not found"}  # type: ignore
