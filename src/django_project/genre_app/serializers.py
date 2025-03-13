@@ -65,7 +65,7 @@ class UpdateGenreRequestSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     name = serializers.CharField(max_length=255, allow_blank=False)
     is_active = serializers.BooleanField()
-    categories = serializers.ListField(child=serializers.UUIDField())
+    categories = SetField(child=serializers.UUIDField())
 
 
 class DeleteGenreRequestSerializer(serializers.Serializer):
