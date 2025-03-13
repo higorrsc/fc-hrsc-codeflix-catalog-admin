@@ -1,11 +1,13 @@
 import uuid
 from dataclasses import dataclass, field
 
+from src.core.category.domain.category_repository import CategoryRepository
 from src.core.genre.application.exceptions import (
     InvalidGenre,
     RelatedCategoriesNotFound,
 )
 from src.core.genre.domain.genre import Genre
+from src.core.genre.domain.genre_repository import GenreRepository
 
 
 class CreateGenre:
@@ -15,9 +17,16 @@ class CreateGenre:
 
     def __init__(
         self,
-        genre_repository,
-        category_repository,
+        genre_repository: GenreRepository,
+        category_repository: CategoryRepository,
     ):
+        """
+        Initialize the CreateGenre use case.
+
+        Args:
+            genre_repository (GenreRepository): The genre repository.
+            category_repository (CategoryRepository): The category repository.
+        """
         self.genre_repository = genre_repository
         self.category_repository = category_repository
 
@@ -54,10 +63,10 @@ class CreateGenre:
             RelatedCategoriesNotFound: If the input includes categories that are not
                 found in the category repository.
         """
-        category_ids = {category.id for category in self.category_repository.list()}
-        if not input.categories.issubset(category_ids):
+        categories = {category.id for category in self.category_repository.list()}
+        if not input.categories.issubset(categories):
             raise RelatedCategoriesNotFound(
-                f"Categories with provided IDs not found: {input.categories - category_ids}"
+                f"Categories with provided IDs not found: {input.categories - categories}"
             )
 
         try:
