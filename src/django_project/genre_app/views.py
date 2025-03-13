@@ -17,6 +17,7 @@ from src.core.genre.application.exceptions import (
 from src.core.genre.application.use_cases.create_genre import CreateGenre
 from src.core.genre.application.use_cases.delete_genre import DeleteGenre
 from src.core.genre.application.use_cases.list_genre import ListGenre
+from src.core.genre.application.use_cases.update_genre import UpdateGenre
 from src.django_project.category_app.repository import DjangoORMCategoryRepository
 from src.django_project.genre_app.repository import DjangoORMGenreRepository
 from src.django_project.genre_app.serializers import (
@@ -24,6 +25,7 @@ from src.django_project.genre_app.serializers import (
     CreateGenreResponseSerializer,
     DeleteGenreRequestSerializer,
     ListGenreResponseSerializer,
+    UpdateGenreRequestSerializer,
 )
 
 
@@ -87,40 +89,48 @@ class GenreViewSet(viewsets.ViewSet):
             status=HTTP_201_CREATED,
         )
 
-    # def update(self, request: Request, pk: None) -> Response:
-    #     """
-    #     Update a genre by its id.
+    def update(self, request: Request, pk: None) -> Response:
+        """
+        Update a genre by its id.
 
-    #     Args:
-    #         request (Request): The request object containing request data.
-    #         pk (uuid.UUID): The id of the genre to be updated.
+        Args:
+            request (Request): The request object containing request data.
+            pk (uuid.UUID): The id of the genre to be updated.
 
-    #     Returns:
-    #         Response: A response object containing the updated genre data.
-    #     """
+        Returns:
+            Response: A response object containing the updated genre data.
+        """
 
-    #     serializer = UpdateGenreRequestSerializer(
-    #         data={
-    #             **request.data,  # type: ignore
-    #             "id": pk,
-    #         }
-    #     )
-    #     serializer.is_valid(raise_exception=True)
+        serializer = UpdateGenreRequestSerializer(
+            data={
+                **request.data,  # type: ignore
+                "id": pk,
+            }
+        )
+        serializer.is_valid(raise_exception=True)
 
-    #     req = UpdateGenreRequest(**serializer.validated_data)  # type: ignore
-    #     use_case = UpdateGenre(DjangoORMGenreRepository())
+        req = UpdateGenre.Input(**serializer.validated_data)  # type: ignore
+        use_case = UpdateGenre(
+            genre_repository=DjangoORMGenreRepository(),
+            category_repository=DjangoORMCategoryRepository(),
+        )
 
-    #     try:
-    #         use_case.execute(req)
-    #     except GenreNotFound:
-    #         return Response(
-    #             data={"detail": "Genre not found"},
-    #             status=HTTP_404_NOT_FOUND,
-    #         )
+        try:
+            use_case.execute(req)
+        except GenreNotFound:
+            return Response(
+                data={"error": "Genre not found"},
+                status=HTTP_404_NOT_FOUND,
+            )
+        except RelatedCategoriesNotFound:
+            return Response(
+                data={"error": "Related categories not found"},
+                status=HTTP_400_BAD_REQUEST,
+            )
 
-    #     return Response(
-    #         status=HTTP_204_NO_CONTENT,
-    #     )
+        return Response(
+            status=HTTP_204_NO_CONTENT,
+        )
 
     def destroy(self, request: Request, pk: None) -> Response:
         """
@@ -150,39 +160,3 @@ class GenreViewSet(viewsets.ViewSet):
         return Response(
             status=HTTP_204_NO_CONTENT,
         )
-
-    # def partial_update(self, request: Request, pk: None) -> Response:
-    #     """
-    #     Partially update a genre by its id.
-
-    #     Args:
-    #         request (Request): The request object containing request data.
-    #         pk (uuid.UUID): The id of the genre to be partially updated.
-
-    #     Returns:
-    #         Response: A response object containing the partially updated genre data.
-    #     """
-
-    #     serializer = UpdateGenreRequestSerializer(
-    #         data={
-    #             **request.data,  # type: ignore
-    #             "id": pk,
-    #         },
-    #         partial=True,
-    #     )
-    #     serializer.is_valid(raise_exception=True)
-
-    #     req = UpdateGenreRequest(**serializer.validated_data)  # type: ignore
-    #     use_case = UpdateGenre(DjangoORMGenreRepository())
-
-    #     try:
-    #         use_case.execute(req)
-    #     except GenreNotFound:
-    #         return Response(
-    #             data={"detail": "Genre not found"},
-    #             status=HTTP_404_NOT_FOUND,
-    #         )
-
-    #     return Response(
-    #         status=HTTP_204_NO_CONTENT,
-    #     )
