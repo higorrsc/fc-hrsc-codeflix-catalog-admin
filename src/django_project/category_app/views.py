@@ -59,9 +59,10 @@ class CategoryViewSet(viewsets.ViewSet):
                     id, name, description, and active status.
         """
 
-        req = ListCategoryRequest()
+        order_by = request.query_params.get("order_by", "name")
+
         use_case = ListCategory(DjangoORMCategoryRepository())
-        res = use_case.execute(req)
+        res = use_case.execute(ListCategoryRequest(order_by=order_by))
 
         serializer = ListCategoryResponseSerializer(instance=res)
 
