@@ -66,7 +66,14 @@ class DjangoORMCastMemberRepository(CastMemberRepository):
             list[CastMember]: A list of all cast members.
         """
 
-        raise NotImplementedError
+        return [
+            CastMember(
+                id=cast_member.id,
+                name=cast_member.name,
+                type=cast_member.type,  # type: ignore
+            )
+            for cast_member in self.cast_member_model.objects.all()
+        ]
 
     def delete(self, cast_member_id: uuid.UUID):
         """
