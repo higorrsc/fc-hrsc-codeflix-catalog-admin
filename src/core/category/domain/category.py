@@ -21,7 +21,7 @@ class Category(AbstractEntity):
         It validates the category's name and description.
         """
 
-        self.__validate()
+        self.validate()
 
     def __str__(self):
         """
@@ -42,7 +42,7 @@ class Category(AbstractEntity):
 
         return f"<Category {self.name} ({self.id})>"
 
-    def __validate(self):
+    def validate(self):
         """
         Validate the category's name.
 
@@ -77,7 +77,7 @@ class Category(AbstractEntity):
 
         self.name = name
         self.description = description
-        self.__validate()
+        self.validate()
 
     def activate(self):
         """
@@ -85,7 +85,7 @@ class Category(AbstractEntity):
         """
 
         self.is_active = True
-        self.__validate()
+        self.validate()
 
     def deactivate(self):
         """
@@ -93,4 +93,4 @@ class Category(AbstractEntity):
         """
 
         self.is_active = False
-        self.__validate()
+        self.validate()

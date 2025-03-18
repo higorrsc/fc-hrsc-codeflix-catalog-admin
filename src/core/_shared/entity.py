@@ -1,5 +1,5 @@
 import uuid
-from abc import ABC
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
 from src.core._shared.notification import Notification
@@ -31,3 +31,18 @@ class AbstractEntity(ABC):
             return False
 
         return self.id == other.id
+
+    @abstractmethod
+    def validate(self):
+        """
+        Validate the entity.
+
+        This method should be implemented in the concrete subclasses to validate
+        the entity's state. It should raise a ValueError if the entity is in an
+        invalid state.
+
+        Raises:
+            ValueError: If the entity is in an invalid state.
+        """
+
+        raise NotImplementedError

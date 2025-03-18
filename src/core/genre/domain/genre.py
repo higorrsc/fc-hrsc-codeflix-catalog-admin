@@ -22,7 +22,7 @@ class Genre(AbstractEntity):
         It validates the genre's name and description.
         """
 
-        self.__validate()
+        self.validate()
 
     def __str__(self):
         """
@@ -44,7 +44,7 @@ class Genre(AbstractEntity):
 
         return f"<Genre {self.name} ({self.id})>"
 
-    def __validate(self):
+    def validate(self):
         """
         Validate the genre's name.
 
@@ -72,7 +72,7 @@ class Genre(AbstractEntity):
         """
 
         self.name = name
-        self.__validate()
+        self.validate()
 
     def activate(self):
         """
@@ -80,7 +80,7 @@ class Genre(AbstractEntity):
         """
 
         self.is_active = True
-        self.__validate()
+        self.validate()
 
     def deactivate(self):
         """
@@ -88,7 +88,7 @@ class Genre(AbstractEntity):
         """
 
         self.is_active = False
-        self.__validate()
+        self.validate()
 
     def add_category(self, category_id: uuid.UUID):
         """
@@ -99,7 +99,7 @@ class Genre(AbstractEntity):
         """
 
         self.categories.add(category_id)
-        self.__validate()
+        self.validate()
 
     def remove_category(self, category_id: uuid.UUID):
         """
@@ -110,4 +110,4 @@ class Genre(AbstractEntity):
         """
 
         self.categories.remove(category_id)
-        self.__validate()
+        self.validate()
