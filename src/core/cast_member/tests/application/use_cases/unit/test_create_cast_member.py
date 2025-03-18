@@ -11,6 +11,9 @@ from src.core.cast_member.domain.cast_member_repository import CastMemberReposit
 
 
 class TestCreateCastMember:
+    """
+    A class for testing the CreateCastMember use case.
+    """
 
     def test_create_cast_member_with_valid_data(self):
         """

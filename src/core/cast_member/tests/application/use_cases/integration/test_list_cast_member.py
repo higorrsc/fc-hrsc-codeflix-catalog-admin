@@ -11,6 +11,9 @@ from src.core.cast_member.infra.in_memory_cast_member_repository import (
 
 
 class TestListCastMember:
+    """
+    A class for testing the ListCastMember use case.
+    """
 
     @pytest.fixture
     def actor(self) -> CastMember:
