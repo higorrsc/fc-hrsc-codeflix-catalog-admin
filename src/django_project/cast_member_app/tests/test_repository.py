@@ -97,3 +97,20 @@ class TestDelete:
         repository.delete(cast_member_id=iron_man.id)
         cast_members_from_db = repository.list()
         assert len(cast_members_from_db) == 1
+
+
+@pytest.mark.django_db
+class TestUpdate:
+    def test_update_cast_member(self):
+        cast_member = CastMember(name="Robert Downey Jr.", type=CastMemberType.ACTOR)
+        repository = DjangoORMCastMemberRepository()
+        repository.save(cast_member=cast_member)
+
+        cast_member_from_db = repository.get_by_id(cast_member.id)
+        assert cast_member_from_db.name == "Robert Downey Jr."  # type: ignore
+
+        cast_member.name = "Chris Evans"
+        repository.update(cast_member=cast_member)
+
+        cast_member_from_db = repository.get_by_id(cast_member.id)
+        assert cast_member_from_db.name == "Chris Evans"  # type: ignore

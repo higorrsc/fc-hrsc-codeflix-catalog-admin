@@ -93,4 +93,11 @@ class DjangoORMCastMemberRepository(CastMemberRepository):
             cast_member (CastMember): The cast member to be updated.
         """
 
-        raise NotImplementedError
+        cast_member_data = {
+            "name": cast_member.name,
+            "type": cast_member.type,
+        }
+
+        self.cast_member_model.objects.filter(pk=cast_member.id).update(
+            **cast_member_data
+        )
