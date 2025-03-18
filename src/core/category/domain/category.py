@@ -1,6 +1,8 @@
 import uuid
 from dataclasses import dataclass, field
 
+from src.core.category.domain.notification import Notification
+
 
 @dataclass
 class Category:
@@ -12,6 +14,7 @@ class Category:
     id: uuid.UUID = field(default_factory=uuid.uuid4)
     description: str = ""
     is_active: bool = True
+    notification: Notification = field(default_factory=Notification)
 
     def __post_init__(self):
         """
@@ -20,6 +23,7 @@ class Category:
         This method is called automatically after the category is created.
         It validates the category's name and description.
         """
+
         self.__validate()
 
     def __str__(self):
@@ -54,11 +58,22 @@ class Category:
         Raises:
             ValueError: If the name is empty or longer than 255 characters.
         """
+
         if not self.name:
-            raise ValueError("Name cannot be empty")
+            # raise ValueError("Name cannot be empty")
+            self.notification.add_error("Name cannot be empty")
 
         if len(self.name) > 255:
-            raise ValueError("Name must have less then 256 characters")
+            # raise ValueError("Name must have less then 256 characters")
+            self.notification.add_error("Name must have less then 256 characters")
+
+        if len(self.description) > 1024:
+            self.notification.add_error(
+                "Description must have less then 1024 characters"
+            )
+
+        if self.notification.has_errors:
+            raise ValueError(self.notification.messages)
 
     def update_category(self, name: str, description: str):
         """
@@ -68,6 +83,7 @@ class Category:
             name (str): The new name of the category.
             description (str): The new description of the category.
         """
+
         self.name = name
         self.description = description
         self.__validate()
@@ -76,6 +92,7 @@ class Category:
         """
         Activate the category.
         """
+
         self.is_active = True
         self.__validate()
 
@@ -83,5 +100,6 @@ class Category:
         """
         Deactivate the category.
         """
+
         self.is_active = False
         self.__validate()

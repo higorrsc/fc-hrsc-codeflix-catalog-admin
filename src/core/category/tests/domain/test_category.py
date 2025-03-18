@@ -16,6 +16,7 @@ class TestCategory:
 
         A TypeError is raised if no name is provided.
         """
+
         with pytest.raises(
             TypeError,
             match="missing 1 required positional argument",
@@ -38,16 +39,42 @@ class TestCategory:
 
         A ValueError is raised if the name has more then 255 characters.
         """
+
         with pytest.raises(
             ValueError,
             match="Name must have less then 256 characters",
         ):
             Category("a" * 256)
 
+    def test_description_must_have_less_then_1024_characters(self):
+        """
+        When creating a Category, description must have less then 1024 characters.
+
+        A ValueError is raised if the description has more then 1024 characters.
+        """
+
+        with pytest.raises(
+            ValueError,
+            match="Description must have less then 1024 characters",
+        ):
+            Category("Action", description="a" * 1025)
+
+    def test_name_and_description_lengths(self):
+        """
+        When creating a Category, name and description must have less then 256 characters.
+        """
+
+        with pytest.raises(
+            ValueError,
+            match="^Name must have less then 256 characters,Description must have less then 1024 characters$",
+        ):
+            Category(name="a" * 256, description="a" * 1025)
+
     def test_id_is_generated_as_uuid_if_not_provided(self):
         """
         When creating a Category without id, one is generated as a UUID.
         """
+
         category = Category("Action")
         assert isinstance(category.id, uuid.UUID)
 
@@ -56,6 +83,7 @@ class TestCategory:
         When creating a Category, without description and is_active, they receive
         default values: description is an empty string and is_active is True.
         """
+
         category = Category("Action")
         assert category.name == "Action"
         assert category.description == ""
@@ -65,6 +93,7 @@ class TestCategory:
         """
         When creating a Category, is_active is True by default.
         """
+
         category = Category("Action")
         assert category.is_active is True
 
@@ -73,6 +102,7 @@ class TestCategory:
         When creating a Category with provided values, all of them are set to
         the object: name, id, description and is_active.
         """
+
         category_id = uuid.uuid4()
         category = Category(
             "Action",
@@ -90,6 +120,7 @@ class TestCategory:
         When calling str() on a Category instance, a human-readable string
         representation is returned.
         """
+
         category = Category("Action")
         assert str(category) == "Category(Action -  (True))"
 
@@ -98,6 +129,7 @@ class TestCategory:
         When calling repr() on a Category instance, an unambiguous string
         representation is returned for debugging.
         """
+
         category_id = uuid.uuid4()
         category = Category("Action", category_id)
         assert repr(category) == f"<Category Action ({category_id})>"
@@ -113,6 +145,7 @@ class TestUpdateCategory:
         When calling update_category() on a Category instance, passing the name and description,
         the category's name and description are updated.
         """
+
         category = Category(name="Action", description="Action movies")
         category.update_category("Adventure", "Adventure movies")
         assert category.name == "Adventure"
@@ -123,6 +156,7 @@ class TestUpdateCategory:
         When calling update_category() with a name longer than 255 characters,
         a ValueError is raised.
         """
+
         category = Category(name="Action", description="Action movies")
         with pytest.raises(
             ValueError,
@@ -134,6 +168,7 @@ class TestUpdateCategory:
         """
         When calling update_category() with an empty name, a ValueError is raised.
         """
+
         category = Category(name="Action")
         with pytest.raises(
             ValueError,
@@ -151,6 +186,7 @@ class TestActivateCategory:
         """
         When calling activate() on a Category instance, the category is activated.
         """
+
         category = Category(
             name="Action",
             description="Action movies",
@@ -163,6 +199,7 @@ class TestActivateCategory:
         """
         When calling activate() on a Category instance, the category is not activated.
         """
+
         category = Category(
             name="Action",
             description="Action movies",
@@ -181,6 +218,7 @@ class TestDeactivateCategory:
         """
         When calling deactivate() on a Category instance, the category is deactivated.
         """
+
         category = Category(
             name="Action",
             description="Action movies",
@@ -193,6 +231,7 @@ class TestDeactivateCategory:
         """
         When calling deactivate() on a Category instance, the category is not deactivated.
         """
+
         category = Category(
             name="Action",
             description="Action movies",
@@ -211,6 +250,7 @@ class TestEquality:
         """
         When creating two Category instances with the same name and id, they are considered equal.
         """
+
         common_id = uuid.uuid4()
         category1 = Category("Action", common_id)
         category2 = Category("Action", common_id)
@@ -230,5 +270,5 @@ class TestEquality:
         common_id = uuid.uuid4()
         category = Category("Action", common_id)
         dummy = Dummy()
-        dummy.id = common_id
+        dummy.id = common_id  # type: ignore
         assert category != dummy
