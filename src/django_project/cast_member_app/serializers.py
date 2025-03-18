@@ -65,3 +65,20 @@ class ListCastMemberResponseSerializer(serializers.Serializer):
     """
 
     data = CastMemberResponseSerializer(many=True)  # type: ignore
+
+
+class CreateCastMemberRequestSerializer(serializers.Serializer):
+    """
+    Serializer for cast member request
+    """
+
+    name = serializers.CharField(max_length=255)
+    type = CastMemberTypeField(required=True)
+
+
+class CreateCastMemberResponseSerializer(serializers.Serializer):
+    """
+    Serializer for create cast member response
+    """
+
+    id = serializers.UUIDField()

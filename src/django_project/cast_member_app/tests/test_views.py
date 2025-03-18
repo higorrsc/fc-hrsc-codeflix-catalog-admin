@@ -1,5 +1,7 @@
+import uuid
+
 import pytest
-from rest_framework.status import HTTP_200_OK
+from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST
 from rest_framework.test import APIClient
 
 from src.core.cast_member.domain.cast_member import CastMember, CastMemberType
@@ -99,3 +101,83 @@ class TestListAPI:
 
         assert response.status_code == HTTP_200_OK  # type: ignore
         assert response.data == expected_response  # type: ignore
+
+
+@pytest.mark.django_db
+class TestCreateAPI:
+    """
+    Class for testing the CreateCastMemberAPI view.
+    """
+
+    def test_create_cast_member(
+        self,
+        cast_member_repository: DjangoORMCastMemberRepository,
+    ):
+        """
+        Tests the CreateCastMemberAPI view.
+
+        Given a DjangoORMCastMemberRepository, when the CreateCastMemberAPI view is called
+        with a POST request to "/api/cast_members/", the expected output is a JSON response
+        containing the created cast member data.
+
+        The test verifies that the cast member is correctly serialized and the response
+        contains the expected data.
+
+        """
+
+        url = "/api/cast_members/"
+        data = {"name": "Robert Downey Jr.", "type": "ACTOR"}
+        response = APIClient().post(
+            path=url,
+            data=data,
+            format="json",
+        )
+
+        assert response.status_code == HTTP_201_CREATED  # type: ignore
+        assert response.data["id"]  # type: ignore
+
+        cast_member_model = cast_member_repository.get_by_id(response.data["id"])  # type: ignore
+        assert cast_member_model is not None
+        assert cast_member_model.id == uuid.UUID(response.data["id"])  # type: ignore
+        assert cast_member_model.name == "Robert Downey Jr."
+        assert cast_member_model.type == "ACTOR"
+
+    def test_create_cast_member_with_empty_name(self):
+        """
+        Tests that creating a cast member with an empty name raises a 400 BAD REQUEST
+        with a JSON response containing an error message.
+
+        The test verifies that the CreateCastMemberAPI view correctly handles a POST
+        request with an empty name and returns the expected error response.
+        """
+
+        url = "/api/cast_members/"
+        data = {"name": "", "type": "ACTOR"}
+        response = APIClient().post(
+            path=url,
+            data=data,
+            format="json",
+        )
+
+        assert response.status_code == HTTP_400_BAD_REQUEST  # type: ignore
+        assert response.data == {"name": ["This field may not be blank."]}  # type: ignore
+
+    def test_create_cast_member_with_invalid_type(self):
+        """
+        Tests that creating a cast member with an invalid type raises a 400 BAD REQUEST
+        with a JSON response containing an error message.
+
+        The test verifies that the CreateCastMemberAPI view correctly handles a POST
+        request with an invalid type and returns the expected error response.
+        """
+
+        url = "/api/cast_members/"
+        data = {"name": "Robert Downey Jr.", "type": "INVALID_TYPE"}
+        response = APIClient().post(
+            path=url,
+            data=data,
+            format="json",
+        )
+
+        assert response.status_code == HTTP_400_BAD_REQUEST  # type: ignore
+        assert response.data == {"type": ['"INVALID_TYPE" is not a valid choice.']}  # type: ignore
