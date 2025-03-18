@@ -92,3 +92,11 @@ class UpdateCastMemberRequestSerializer(serializers.Serializer):
     id = serializers.UUIDField()
     name = serializers.CharField(max_length=255)
     type = CastMemberTypeField(required=True)
+
+
+class DeleteCastMemberRequestSerializer(serializers.Serializer):
+    """
+    Serializer for delete cast member request
+    """
+
+    id = serializers.UUIDField()

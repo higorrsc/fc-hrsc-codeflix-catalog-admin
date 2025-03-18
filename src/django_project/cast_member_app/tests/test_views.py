@@ -318,3 +318,52 @@ class TestUpdateAPI:
 
         assert response.status_code == HTTP_400_BAD_REQUEST  # type: ignore
         assert response.data == {"type": ['"INVALID_TYPE" is not a valid choice.']}  # type: ignore
+
+
+@pytest.mark.django_db
+class TestDeleteAPI:
+    """
+    Class for testing the DeleteCastMemberAPI view.
+    """
+
+    def test_delete_cast_member(
+        self,
+        cast_member_repository: DjangoORMCastMemberRepository,
+    ):
+        """
+        Tests the DeleteCastMemberAPI view.
+
+        Given a DjangoORMCastMemberRepository, when the DeleteCastMemberAPI view is called
+        with a DELETE request to "/api/cast_members/{id}/", the expected output is a JSON
+        response containing the deleted cast member data.
+
+        The test verifies that the cast member is correctly deleted and the response
+        contains the expected data.
+        """
+
+        cast_member = CastMember(
+            name="Robert Downey Jr.",
+            type=CastMemberType.ACTOR,
+        )
+        cast_member_repository.save(cast_member)
+
+        url = f"/api/cast_members/{cast_member.id}/"
+        response = APIClient().delete(url)
+
+        assert response.status_code == HTTP_204_NO_CONTENT  # type: ignore
+        assert cast_member_repository.get_by_id(cast_member.id) is None
+
+    def test_delete_cast_member_with_invalid_id(self):
+        """
+        Tests that deleting a cast member with an invalid id raises a 404 NOT FOUND
+        with a JSON response containing an error message.
+
+        The test verifies that the DeleteCastMemberAPI view correctly handles a DELETE
+        request with an invalid id and returns the expected error response.
+        """
+
+        url = f"/api/cast_members/{uuid.uuid4()}/"
+        response = APIClient().delete(url)
+
+        assert response.status_code == HTTP_404_NOT_FOUND  # type: ignore
+        assert response.data == {"detail": "Cast member not found"}  # type: ignore

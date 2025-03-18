@@ -16,6 +16,9 @@ from src.core.cast_member.application.exceptions import (
 from src.core.cast_member.application.use_cases.create_cast_member import (
     CreateCastMember,
 )
+from src.core.cast_member.application.use_cases.delete_cast_member import (
+    DeleteCastMember,
+)
 from src.core.cast_member.application.use_cases.list_cast_member import ListCastMember
 from src.core.cast_member.application.use_cases.update_cast_member import (
     UpdateCastMember,
@@ -24,6 +27,7 @@ from src.django_project.cast_member_app.repository import DjangoORMCastMemberRep
 from src.django_project.cast_member_app.serializers import (
     CreateCastMemberRequestSerializer,
     CreateCastMemberResponseSerializer,
+    DeleteCastMemberRequestSerializer,
     ListCastMemberResponseSerializer,
     UpdateCastMemberRequestSerializer,
 )
@@ -124,4 +128,34 @@ class CastMemberViewSet(viewsets.ViewSet):
             status=HTTP_204_NO_CONTENT,
         )
 
-    def destroy(self, request: Request, pk: None) -> Response: ...
+    def destroy(self, request: Request, pk: None) -> Response:
+        """
+        Delete a cast member by its id.
+
+        Args:
+            request (Request): The request object containing request data.
+            pk (uuid.UUID): The id of the cast member to be deleted.
+
+        Returns:
+            Response: A response object containing the deleted cast member data.
+        """
+
+        serializer = DeleteCastMemberRequestSerializer(data={"id": pk})
+        serializer.is_valid(raise_exception=True)
+
+        req: DeleteCastMember.Input = DeleteCastMember.Input(
+            **serializer.validated_data,  # type: ignore
+        )
+
+        use_case = DeleteCastMember(DjangoORMCastMemberRepository())
+        try:
+            use_case.execute(req)
+        except CastMemberNotFound:
+            return Response(
+                data={"detail": "Cast member not found"},
+                status=HTTP_404_NOT_FOUND,
+            )
+
+        return Response(
+            status=HTTP_204_NO_CONTENT,
+        )
