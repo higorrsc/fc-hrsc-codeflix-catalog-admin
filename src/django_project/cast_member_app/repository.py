@@ -83,7 +83,7 @@ class DjangoORMCastMemberRepository(CastMemberRepository):
             cast_member_id (uuid.UUID): The ID of the cast member to be deleted.
         """
 
-        raise NotImplementedError
+        self.cast_member_model.objects.filter(pk=cast_member_id).delete()
 
     def update(self, cast_member: CastMember):
         """
