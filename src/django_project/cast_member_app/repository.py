@@ -48,7 +48,15 @@ class DjangoORMCastMemberRepository(CastMemberRepository):
             CastMember | None: The cast member with the given ID, or None if it doesn't exist.
         """
 
-        raise NotImplementedError
+        try:
+            cast_member = self.cast_member_model.objects.get(pk=cast_member_id)
+            return CastMember(
+                id=cast_member.id,
+                name=cast_member.name,
+                type=cast_member.type,  # type: ignore
+            )
+        except self.cast_member_model.DoesNotExist:
+            return None
 
     def list(self) -> List[CastMember]:
         """
