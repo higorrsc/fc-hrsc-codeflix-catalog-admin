@@ -55,7 +55,7 @@ class TestGenre:
         and categories is an empty set.
         """
 
-        genre = Genre("Romance")
+        genre = Genre(name="Romance")
         assert genre.name == "Romance"
         assert genre.is_active is True
         assert isinstance(genre.id, uuid.UUID)
@@ -70,10 +70,10 @@ class TestGenre:
         genre_id = uuid.uuid4()
         categories_ids = {uuid.uuid4(), uuid.uuid4()}
         genre = Genre(
-            "Romance",
-            genre_id,
-            False,
-            categories_ids,
+            id=genre_id,
+            name="Romance",
+            is_active=False,
+            categories=categories_ids,
         )
         assert genre.name == "Romance"
         assert genre.id == genre_id
@@ -86,7 +86,7 @@ class TestGenre:
         representation is returned.
         """
 
-        genre = Genre("Romance")
+        genre = Genre(name="Romance")
         assert str(genre) == "Genre(Romance (True))"
 
     def test_repr_representation(self):
@@ -96,7 +96,10 @@ class TestGenre:
         """
 
         genre_id = uuid.uuid4()
-        genre = Genre("Romance", genre_id)
+        genre = Genre(
+            id=genre_id,
+            name="Romance",
+        )
         assert repr(genre) == f"<Genre Romance ({genre_id})>"
 
 
@@ -212,8 +215,14 @@ class TestEquality:
         """
 
         common_id = uuid.uuid4()
-        genre1 = Genre("Romance", common_id)
-        genre2 = Genre("Romance", common_id)
+        genre1 = Genre(
+            id=common_id,
+            name="Romance",
+        )
+        genre2 = Genre(
+            id=common_id,
+            name="Romance",
+        )
         assert genre1 == genre2
 
     def test_equality_different_classes(self):
@@ -228,7 +237,10 @@ class TestEquality:
             """
 
         common_id = uuid.uuid4()
-        genre = Genre("Romance", common_id)
+        genre = Genre(
+            id=common_id,
+            name="Romance",
+        )
         dummy = Dummy()
         dummy.id = common_id  # type: ignore
         assert genre != dummy
@@ -244,7 +256,7 @@ class TestAddCategory:
         When calling add_category() on a Genre instance, the category is added.
         """
 
-        genre = Genre("Romance")
+        genre = Genre(name="Romance")
         category_id = uuid.uuid4()
         assert category_id not in genre.categories
 
@@ -256,7 +268,7 @@ class TestAddCategory:
         When calling add_category() on a Genre instance, multiple categories can be added.
         """
 
-        genre = Genre("Romance")
+        genre = Genre(name="Romance")
         category_id1 = uuid.uuid4()
         category_id2 = uuid.uuid4()
 
@@ -282,7 +294,7 @@ class TestRemoveCategory:
         When calling remove_category() on a Genre instance, the category is removed.
         """
 
-        genre = Genre("Romance")
+        genre = Genre(name="Romance")
         category_id = uuid.uuid4()
         genre.add_category(category_id)
         assert category_id in genre.categories

@@ -105,10 +105,10 @@ class TestCategory:
 
         category_id = uuid.uuid4()
         category = Category(
-            "Action",
-            category_id,
-            "Action description",
-            False,
+            id=category_id,
+            name="Action",
+            description="Action description",
+            is_active=False,
         )
         assert category.name == "Action"
         assert category.id == category_id
@@ -131,7 +131,10 @@ class TestCategory:
         """
 
         category_id = uuid.uuid4()
-        category = Category("Action", category_id)
+        category = Category(
+            id=category_id,
+            name="Action",
+        )
         assert repr(category) == f"<Category Action ({category_id})>"
 
 
@@ -146,8 +149,14 @@ class TestUpdateCategory:
         the category's name and description are updated.
         """
 
-        category = Category(name="Action", description="Action movies")
-        category.update_category("Adventure", "Adventure movies")
+        category = Category(
+            name="Action",
+            description="Action movies",
+        )
+        category.update_category(
+            name="Adventure",
+            description="Adventure movies",
+        )
         assert category.name == "Adventure"
         assert category.description == "Adventure movies"
 
@@ -252,8 +261,14 @@ class TestEquality:
         """
 
         common_id = uuid.uuid4()
-        category1 = Category("Action", common_id)
-        category2 = Category("Action", common_id)
+        category1 = Category(
+            id=common_id,
+            name="Action",
+        )
+        category2 = Category(
+            id=common_id,
+            name="Action",
+        )
         assert category1 == category2
 
     def test_equality_different_classes(self):
@@ -268,7 +283,10 @@ class TestEquality:
             """
 
         common_id = uuid.uuid4()
-        category = Category("Action", common_id)
+        category = Category(
+            id=common_id,
+            name="Action",
+        )
         dummy = Dummy()
         dummy.id = common_id  # type: ignore
         assert category != dummy

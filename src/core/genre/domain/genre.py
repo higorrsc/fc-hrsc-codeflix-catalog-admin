@@ -1,15 +1,16 @@
 import uuid
 from dataclasses import dataclass, field
 
+from src.core._shared.entity import AbstractEntity
+
 
 @dataclass
-class Genre:
+class Genre(AbstractEntity):
     """
     Represents a genre of movies.
     """
 
     name: str
-    id: uuid.UUID = field(default_factory=uuid.uuid4)
     is_active: bool = True
     categories: set[uuid.UUID] = field(default_factory=set)
 
@@ -30,6 +31,7 @@ class Genre:
         Returns:
             str: A human-readable string representation of the genre.
         """
+
         return f"Genre({self.name} ({self.is_active}))"
 
     def __repr__(self):
@@ -42,24 +44,6 @@ class Genre:
 
         return f"<Genre {self.name} ({self.id})>"
 
-    def __eq__(self, other):
-        """
-        Check if two Genre instances are equal.
-
-        Two Genre instances are considered equal if they have the same ID.
-
-        Args:
-            other (object): The object to compare with.
-
-        Returns:
-            bool: True if the two Genre instances are equal, False otherwise.
-        """
-
-        if not isinstance(other, Genre):
-            return False
-
-        return self.id == other.id
-
     def __validate(self):
         """
         Validate the genre's name.
@@ -69,10 +53,15 @@ class Genre:
         """
 
         if not self.name:
-            raise ValueError("Name cannot be empty")
+            # raise ValueError("Name cannot be empty")
+            self.notification.add_error("Name cannot be empty")
 
         if len(self.name) > 255:
-            raise ValueError("Name must have less then 256 characters")
+            # raise ValueError("Name must have less then 256 characters")
+            self.notification.add_error("Name must have less then 256 characters")
+
+        if self.notification.has_errors:
+            raise ValueError(self.notification.messages)
 
     def change_name(self, name: str):
         """

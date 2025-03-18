@@ -1,20 +1,17 @@
-import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
-from src.core.category.domain.notification import Notification
+from src.core._shared.entity import AbstractEntity
 
 
 @dataclass
-class Category:
+class Category(AbstractEntity):
     """
     Represents a category of movies.
     """
 
     name: str
-    id: uuid.UUID = field(default_factory=uuid.uuid4)
     description: str = ""
     is_active: bool = True
-    notification: Notification = field(default_factory=Notification)
 
     def __post_init__(self):
         """
@@ -44,12 +41,6 @@ class Category:
         """
 
         return f"<Category {self.name} ({self.id})>"
-
-    def __eq__(self, other):
-        if not isinstance(other, Category):
-            return False
-
-        return self.id == other.id
 
     def __validate(self):
         """
