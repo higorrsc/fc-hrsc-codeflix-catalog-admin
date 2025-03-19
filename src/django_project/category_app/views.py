@@ -60,9 +60,15 @@ class CategoryViewSet(viewsets.ViewSet):
         """
 
         order_by = request.query_params.get("order_by", "name")
+        current_page = request.query_params.get("current_page", 1)
 
         use_case = ListCategory(DjangoORMCategoryRepository())
-        res = use_case.execute(ListCategoryRequest(order_by=order_by))
+        res = use_case.execute(
+            ListCategoryRequest(
+                order_by=order_by,
+                current_page=int(current_page),
+            )
+        )
 
         serializer = ListCategoryResponseSerializer(instance=res)
 

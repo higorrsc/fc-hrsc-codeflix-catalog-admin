@@ -1,5 +1,5 @@
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
 
 from src.core.category.domain.category_repository import CategoryRepository
@@ -24,6 +24,18 @@ class ListCategoryRequest:
     """
 
     order_by: str = "name"
+    current_page: int = 1
+
+
+@dataclass
+class ListOutputMeta:
+    """
+    Represents the metadata of a list output.
+    """
+
+    current_page: int
+    per_page: int
+    total: int
 
 
 @dataclass
@@ -33,6 +45,7 @@ class ListCategoryResponse:
     """
 
     data: List[CategoryOutput]
+    meta: ListOutputMeta = field(default_factory=ListOutputMeta)  # type: ignore
 
 
 class ListCategory:
@@ -61,18 +74,30 @@ class ListCategory:
         """
 
         categories = self.repository.list()
+        sorted_categories = sorted(
+            [
+                CategoryOutput(
+                    id=category.id,
+                    name=category.name,
+                    description=category.description,
+                    is_active=category.is_active,
+                )
+                for category in categories
+            ],
+            key=lambda category: getattr(category, request.order_by),
+        )
+
+        default_page_size = 2
+        page_offset = (request.current_page - 1) * default_page_size
+        categories_page = sorted_categories[
+            page_offset : page_offset + default_page_size
+        ]
 
         return ListCategoryResponse(
-            data=sorted(
-                [
-                    CategoryOutput(
-                        id=category.id,
-                        name=category.name,
-                        description=category.description,
-                        is_active=category.is_active,
-                    )
-                    for category in categories
-                ],
-                key=lambda category: getattr(category, request.order_by),
+            data=categories_page,
+            meta=ListOutputMeta(
+                current_page=request.current_page,
+                per_page=default_page_size,
+                total=len(sorted_categories),
             ),
         )
