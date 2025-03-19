@@ -1,1 +1,28 @@
-GET http://localhost:8000/api/categories
+GET http://localhost:8000/api/categories/?order_by=id&current_page=1
+
+###
+POST http://localhost:8000/api/categories/
+Content-Type: application/json
+
+{
+    "name": "Horror",
+    "description": "Horror Description"
+}
+
+###
+POST http://localhost:8000/api/categories/
+Content-Type: application/json
+
+{
+    "name": "Sci-Fi",
+    "description": "Sci-Fi Description"
+}
+
+###
+POST http://localhost:8000/api/categories/
+Content-Type: application/json
+
+{
+    "name": "Drama",
+    "description": "Drama Description"
+}
