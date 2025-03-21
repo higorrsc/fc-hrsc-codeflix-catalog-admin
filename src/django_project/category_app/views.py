@@ -8,7 +8,7 @@ from rest_framework.status import (
     HTTP_404_NOT_FOUND,
 )
 
-from src.core._shared.use_cases.list import ListRequest, ListUseCase
+from src.core._shared.application.use_cases.list import ListRequest, ListUseCase
 from src.core.category.application.exceptions import CategoryNotFound
 from src.core.category.application.use_cases.create_category import (
     CreateCategory,

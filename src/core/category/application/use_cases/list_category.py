@@ -1,7 +1,11 @@
 import uuid
 from dataclasses import dataclass
 
-from src.core._shared.use_cases.list import ListRequest, ListResponse, ListUseCase
+from src.core._shared.application.use_cases.list import (
+    ListRequest,
+    ListResponse,
+    ListUseCase,
+)
 from src.core.category.domain.category_repository import CategoryRepository
 
 

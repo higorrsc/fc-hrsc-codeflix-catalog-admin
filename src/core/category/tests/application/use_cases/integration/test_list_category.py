@@ -1,5 +1,9 @@
 from src.config import DEFAULT_PAGE_SIZE
-from src.core._shared.use_cases.list import ListRequest, ListResponse, ListResponseMeta
+from src.core._shared.application.use_cases.list import (
+    ListRequest,
+    ListResponse,
+    ListResponseMeta,
+)
 from src.core.category.application.use_cases.list_category import ListCategory
 from src.core.category.domain.category import Category
 from src.core.category.infra.in_memory_category_repository import (
