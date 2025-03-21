@@ -1,6 +1,8 @@
 import pytest
 from rest_framework.test import APIClient
 
+from src.config import DEFAULT_PAGE_SIZE
+
 
 @pytest.mark.django_db
 class TestCreateAndEditCategory:
@@ -44,7 +46,12 @@ class TestCreateAndEditCategory:
                     "description": "Test Category Description",
                     "is_active": True,
                 }
-            ]
+            ],
+            "meta": {
+                "current_page": 1,
+                "per_page": DEFAULT_PAGE_SIZE,
+                "total": 1,
+            },
         }
 
         # Verify that category is active
@@ -83,7 +90,12 @@ class TestCreateAndEditCategory:
                     "description": "Test Category Description Updated",
                     "is_active": False,
                 }
-            ]
+            ],
+            "meta": {
+                "current_page": 1,
+                "per_page": DEFAULT_PAGE_SIZE,
+                "total": 1,
+            },
         }
 
         # Delete category
