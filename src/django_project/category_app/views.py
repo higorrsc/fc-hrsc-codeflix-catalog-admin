@@ -57,12 +57,14 @@ class CategoryViewSet(viewsets.ViewSet):
         """
 
         order_by = request.query_params.get("order_by", "name")
+        reverse_order = request.query_params.get("sort", "asc")
         current_page = request.query_params.get("current_page", 1)
 
         use_case = ListUseCase(DjangoORMCategoryRepository())
         res = use_case.execute(
             ListRequest(
                 order_by=order_by,
+                sort=reverse_order,
                 current_page=int(current_page),
             )
         )

@@ -14,6 +14,7 @@ class ListRequest:
     """
 
     order_by: str = "id"
+    sort: str = "asc"
     current_page: int = 1
 
 
@@ -66,12 +67,14 @@ class ListUseCase(Generic[T, RequestT]):
         """
 
         entity = self.repository.list()
+        reverse_order = request.sort.lower() == "desc"  # type: ignore
         sorted_entity = sorted(
             entity,
             key=lambda entity: getattr(
                 entity,
                 request.order_by,  # type: ignore
             ),
+            reverse=reverse_order,
         )
 
         page_offset = (request.current_page - 1) * getattr(  # type: ignore
