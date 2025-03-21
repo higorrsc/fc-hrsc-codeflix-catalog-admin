@@ -8,6 +8,7 @@ from rest_framework.status import (
     HTTP_404_NOT_FOUND,
 )
 
+from src.core._shared.use_cases.list import ListRequest, ListUseCase
 from src.core.category.application.exceptions import CategoryNotFound
 from src.core.category.application.use_cases.create_category import (
     CreateCategory,
@@ -20,10 +21,6 @@ from src.core.category.application.use_cases.delete_category import (
 from src.core.category.application.use_cases.get_category import (
     GetCategory,
     GetCategoryRequest,
-)
-from src.core.category.application.use_cases.list_category import (
-    ListCategory,
-    ListCategoryRequest,
 )
 from src.core.category.application.use_cases.update_category import (
     UpdateCategory,
@@ -62,9 +59,9 @@ class CategoryViewSet(viewsets.ViewSet):
         order_by = request.query_params.get("order_by", "name")
         current_page = request.query_params.get("current_page", 1)
 
-        use_case = ListCategory(DjangoORMCategoryRepository())
+        use_case = ListUseCase(DjangoORMCategoryRepository())
         res = use_case.execute(
-            ListCategoryRequest(
+            ListRequest(
                 order_by=order_by,
                 current_page=int(current_page),
             )
