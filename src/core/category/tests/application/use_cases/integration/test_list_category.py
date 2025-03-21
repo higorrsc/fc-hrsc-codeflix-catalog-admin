@@ -1,9 +1,6 @@
-from src.core.category.application.use_cases.list_category import (
-    CategoryOutput,
-    ListCategory,
-    ListCategoryRequest,
-    ListCategoryResponse,
-)
+from src.config import DEFAULT_PAGE_SIZE
+from src.core._shared.use_cases.list import ListRequest, ListResponse, ListResponseMeta
+from src.core.category.application.use_cases.list_category import ListCategory
 from src.core.category.domain.category import Category
 from src.core.category.infra.in_memory_category_repository import (
     InMemoryCategoryRepository,
@@ -26,11 +23,20 @@ class TestListCategory:
 
         repository = InMemoryCategoryRepository(categories=[])
         use_case = ListCategory(repository)
-        request = ListCategoryRequest()
+        request = ListRequest()
 
         response = use_case.execute(request)
 
-        assert response == ListCategoryResponse(data=[])
+        response: ListResponse = use_case.execute(request)
+
+        assert response == {
+            "data": [],
+            "meta": ListResponseMeta(
+                current_page=1,
+                per_page=DEFAULT_PAGE_SIZE,
+                total=0,
+            ),
+        }
 
     def test_return_existing_categories(self):
         """
@@ -56,23 +62,18 @@ class TestListCategory:
         repository.save(category_adventure)
 
         use_case = ListCategory(repository)
-        request = ListCategoryRequest()
+        request = ListRequest(order_by="name")
 
-        response = use_case.execute(request)
+        response: ListResponse = use_case.execute(request)
 
-        assert response == ListCategoryResponse(
-            data=[
-                CategoryOutput(
-                    id=category_action.id,
-                    name=category_action.name,
-                    description=category_action.description,
-                    is_active=category_action.is_active,
-                ),
-                CategoryOutput(
-                    id=category_adventure.id,
-                    name=category_adventure.name,
-                    description=category_adventure.description,
-                    is_active=category_adventure.is_active,
-                ),
-            ]
-        )
+        assert response == {
+            "data": [
+                category_action,
+                category_adventure,
+            ],
+            "meta": ListResponseMeta(
+                current_page=1,
+                per_page=DEFAULT_PAGE_SIZE,
+                total=2,
+            ),
+        }

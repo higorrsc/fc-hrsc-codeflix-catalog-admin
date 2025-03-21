@@ -1,10 +1,10 @@
 from unittest.mock import create_autospec
 
+from src.config import DEFAULT_PAGE_SIZE
+from src.core._shared.use_cases.list import ListRequest, ListResponse, ListResponseMeta
 from src.core.category.application.use_cases.list_category import (
     CategoryOutput,
     ListCategory,
-    ListCategoryRequest,
-    ListCategoryResponse,
 )
 from src.core.category.domain.category import Category
 from src.core.category.domain.category_repository import CategoryRepository
@@ -28,11 +28,19 @@ class TestListCategory:
         mock_repository.list.return_value = []
 
         use_case = ListCategory(mock_repository)
-        request = ListCategoryRequest()
+        request = ListRequest()
 
-        response = use_case.execute(request)
+        response: ListResponse = use_case.execute(request)
 
-        assert response == ListCategoryResponse(data=[])
+        assert response == {
+            "data": [],
+            "meta": ListResponseMeta(
+                current_page=1,
+                per_page=DEFAULT_PAGE_SIZE,
+                total=0,
+            ),
+        }
+
         assert mock_repository.list.called is True
 
     def test_when_categories_in_repository_then_return_list(self):
@@ -56,17 +64,27 @@ class TestListCategory:
 
         mock_repository = create_autospec(CategoryRepository)
         mock_repository.list.return_value = [
-            category_action,
-            category_adventure,
+            CategoryOutput(
+                id=category_action.id,
+                name=category_action.name,
+                description=category_action.description,
+                is_active=category_action.is_active,
+            ),
+            CategoryOutput(
+                id=category_adventure.id,
+                name=category_adventure.name,
+                description=category_adventure.description,
+                is_active=category_adventure.is_active,
+            ),
         ]
 
         use_case = ListCategory(mock_repository)
-        request = ListCategoryRequest()
+        request = ListRequest(order_by="name")
 
-        response = use_case.execute(request)
+        response: ListResponse = use_case.execute(request)
 
-        assert response == ListCategoryResponse(
-            data=[
+        assert response == {
+            "data": [
                 CategoryOutput(
                     id=category_action.id,
                     name=category_action.name,
@@ -79,6 +97,12 @@ class TestListCategory:
                     description=category_adventure.description,
                     is_active=category_adventure.is_active,
                 ),
-            ]
-        )
+            ],
+            "meta": ListResponseMeta(
+                current_page=1,
+                per_page=DEFAULT_PAGE_SIZE,
+                total=2,
+            ),
+        }
+
         assert mock_repository.list.called is True
