@@ -3,6 +3,7 @@ from unittest.mock import create_autospec
 
 import pytest
 
+from src.core._shared.application.use_cases.delete import DeleteRequest
 from src.core.cast_member.application.exceptions import CastMemberNotFound
 from src.core.cast_member.application.use_cases.delete_cast_member import (
     DeleteCastMember,
@@ -71,7 +72,7 @@ class TestDeleteCastMember:
         """
 
         use_case = DeleteCastMember(mock_repository)
-        use_case.execute(DeleteCastMember.Input(id=actor.id))
+        use_case.execute(DeleteRequest(id=actor.id))
 
         mock_repository.delete.assert_called_once_with(actor.id)  # type: ignore
 
@@ -89,6 +90,6 @@ class TestDeleteCastMember:
 
         use_case = DeleteCastMember(mock_empty_repository)
         with pytest.raises(CastMemberNotFound):
-            use_case.execute(DeleteCastMember.Input(id=uuid.uuid4()))
+            use_case.execute(DeleteRequest(id=uuid.uuid4()))
 
         mock_empty_repository.delete.assert_not_called()  # type: ignore

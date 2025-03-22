@@ -1,11 +1,13 @@
-import uuid
-from dataclasses import dataclass
-
+from src.core._shared.application.use_cases.delete import DeleteRequest, DeleteUseCase
 from src.core.cast_member.application.exceptions import CastMemberNotFound
 from src.core.cast_member.domain.cast_member_repository import CastMemberRepository
 
 
-class DeleteCastMember:
+class DeleteCastMember(DeleteUseCase):
+    """
+    Delete a cast member by its ID.
+    """
+
     def __init__(self, repository: CastMemberRepository):
         """
         Initialize the DeleteCastMember use case.
@@ -14,36 +16,21 @@ class DeleteCastMember:
             repository (CastMemberRepository): The cast member repository.
         """
 
-        self.repository = repository
+        super().__init__(
+            repository=repository,
+            not_found_exception=CastMemberNotFound,
+            not_found_message="Cast member with ID {id} not found",
+        )
 
-    @dataclass
-    class Input:
+    def execute(self, request: DeleteRequest) -> None:
         """
-        Input data for the DeleteCastMember use case.
-        """
-
-        id: uuid.UUID
-
-    @dataclass
-    class Output:
-        """
-        Output data for the DeleteCastMember use case.
-        """
-
-    def execute(self, input: Input) -> None:
-        """
-        Execute the DeleteCastMember use case.
+        Deletes a cast member by its ID.
 
         Args:
-            input (Input): The input for the use case.
+            request (DeleteRequest): The request with the ID of the cast member to be deleted.
 
-        Returns:
-            Output: The output of the use case.
+        Raises:
+            CastMemberNotFound: If the cast member is not found.
         """
 
-        cast_member = self.repository.get_by_id(input.id)
-
-        if cast_member is None:
-            raise CastMemberNotFound(f"CastMember with ID {input.id} not found")
-
-        self.repository.delete(cast_member_id=input.id)
+        super().execute(request)
