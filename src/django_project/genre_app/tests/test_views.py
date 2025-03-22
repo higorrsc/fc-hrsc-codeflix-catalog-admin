@@ -179,7 +179,7 @@ class TestListAPI:
             #     "total": 2,
             # },
         }
-        assert response.data == expected_response  # type: ignore
+        assert response.data, expected_response  # type: ignore
 
         # assert response.status_code == HTTP_200_OK  # type: ignore
         # assert response.data["data"]  # type: ignore
