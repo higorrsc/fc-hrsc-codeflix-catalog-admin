@@ -1,38 +1,36 @@
-import uuid
-from dataclasses import dataclass
-
+from src.core._shared.application.use_cases.delete import DeleteRequest, DeleteUseCase
 from src.core.genre.application.exceptions import GenreNotFound
 from src.core.genre.domain.genre_repository import GenreRepository
 
 
-class DeleteGenre:
+class DeleteGenre(DeleteUseCase):
     """
     Delete a genre by its ID.
     """
 
-    @dataclass
-    class Input:
-        """
-        Input for the DeleteGenre use case.
-        """
-
-        id: uuid.UUID
-
     def __init__(self, repository: GenreRepository):
-        self.repository = repository
+        """
+        Initialize the DeleteGenre use case.
 
-    def execute(self, input: Input) -> None:
+        Args:
+            repository (GenreRepository): The genre repository.
+        """
+
+        super().__init__(
+            repository=repository,
+            not_found_exception=GenreNotFound,
+            not_found_message="Genre with ID {id} not found",
+        )
+
+    def execute(self, request: DeleteRequest) -> None:
         """
         Deletes a genre by its ID.
 
         Args:
-            input (Input): The input with the genre ID.
+            request (DeleteRequest): The request with the ID of the genre to be deleted.
 
+        Raises:
+            GenreNotFound: If the genre is not found.
         """
 
-        genre = self.repository.get_by_id(genre_id=input.id)
-
-        if genre is None:
-            raise GenreNotFound(f"Genre with ID {input.id} not found")
-
-        self.repository.delete(genre_id=input.id)
+        super().execute(request)
