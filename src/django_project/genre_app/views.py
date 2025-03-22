@@ -25,10 +25,10 @@ from src.django_project.genre_app.repository import DjangoORMGenreRepository
 from src.django_project.genre_app.serializers import (
     CreateGenreRequestSerializer,
     CreateGenreResponseSerializer,
-    DeleteGenreRequestSerializer,
     ListGenreResponseSerializer,
     UpdateGenreRequestSerializer,
 )
+from src.django_project.serializers import DeleteRequestSerializer
 
 
 # Create your views here.
@@ -155,7 +155,7 @@ class GenreViewSet(viewsets.ViewSet):
             Response: A response object containing the deleted genre data.
         """
 
-        serializer = DeleteGenreRequestSerializer(data={"id": pk})
+        serializer = DeleteRequestSerializer(data={"id": pk})
         serializer.is_valid(raise_exception=True)
 
         req = DeleteRequest(id=pk)  # type: ignore
