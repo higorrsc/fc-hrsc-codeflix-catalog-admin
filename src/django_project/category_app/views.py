@@ -8,16 +8,14 @@ from rest_framework.status import (
     HTTP_404_NOT_FOUND,
 )
 
+from src.core._shared.application.use_cases.delete import DeleteRequest
 from src.core._shared.application.use_cases.list import ListRequest, ListUseCase
 from src.core.category.application.exceptions import CategoryNotFound
 from src.core.category.application.use_cases.create_category import (
     CreateCategory,
     CreateCategoryRequest,
 )
-from src.core.category.application.use_cases.delete_category import (
-    DeleteCategory,
-    DeleteCategoryRequest,
-)
+from src.core.category.application.use_cases.delete_category import DeleteCategory
 from src.core.category.application.use_cases.get_category import (
     GetCategory,
     GetCategoryRequest,
@@ -181,7 +179,7 @@ class CategoryViewSet(viewsets.ViewSet):
         serializer = DeleteCategoryRequestSerializer(data={"id": pk})
         serializer.is_valid(raise_exception=True)
 
-        req = DeleteCategoryRequest(id=pk)  # type: ignore
+        req = DeleteRequest(id=pk)  # type: ignore
         use_case = DeleteCategory(DjangoORMCategoryRepository())
         try:
             use_case.execute(req)

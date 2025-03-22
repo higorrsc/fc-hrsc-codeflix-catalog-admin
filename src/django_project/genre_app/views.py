@@ -9,6 +9,7 @@ from rest_framework.status import (
     HTTP_404_NOT_FOUND,
 )
 
+from src.core._shared.application.use_cases.delete import DeleteRequest
 from src.core._shared.application.use_cases.list import ListRequest, ListResponse
 from src.core.genre.application.exceptions import (
     GenreNotFound,
@@ -157,7 +158,7 @@ class GenreViewSet(viewsets.ViewSet):
         serializer = DeleteGenreRequestSerializer(data={"id": pk})
         serializer.is_valid(raise_exception=True)
 
-        req = DeleteGenre.Input(id=pk)  # type: ignore
+        req = DeleteRequest(id=pk)  # type: ignore
         use_case = DeleteGenre(DjangoORMGenreRepository())
         try:
             use_case.execute(req)
