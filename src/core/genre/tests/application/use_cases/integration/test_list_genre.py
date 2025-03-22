@@ -1,8 +1,14 @@
+from src.config import DEFAULT_PAGE_SIZE
+from src.core._shared.application.use_cases.list import (
+    ListRequest,
+    ListResponse,
+    ListResponseMeta,
+)
 from src.core.category.domain.category import Category
 from src.core.category.infra.in_memory_category_repository import (
     InMemoryCategoryRepository,
 )
-from src.core.genre.application.use_cases.list_genre import GenreOutput, ListGenre
+from src.core.genre.application.use_cases.list_genre import ListGenre
 from src.core.genre.domain.genre import Genre
 from src.core.genre.infra.in_memory_genre_repository import InMemoryGenreRepository
 
@@ -15,14 +21,11 @@ class TestListGenre:
     def test_list_genres_with_associated_categories(self):
         """
         When calling list_genres() with associated categories, it returns a
-        list of GenreOutput objects containing the name and associated categories
-        of each genre in the repository.
+        ListResponse containing the genres with their associated categories.
 
-        Args:
-            None
-
-        Returns:
-            ListGenre.Output: A list of GenreOutput objects.
+        This test verifies that the `list_genres` use case successfully lists the
+        genres with their associated categories, ensuring that the genres and
+        categories are retrieved from the repository with the correct data.
         """
 
         movie_category = Category(name="Movie")
@@ -42,22 +45,17 @@ class TestListGenre:
         genre_repository.save(genre)
 
         use_case = ListGenre(repository=genre_repository)
-        output = use_case.execute(input=ListGenre.Input())
+        output: ListResponse = use_case.execute(ListRequest(order_by="name"))
 
-        assert len(output.data) == 1
-        assert output == ListGenre.Output(
-            data=[
-                GenreOutput(
-                    id=genre.id,
-                    name=genre.name,
-                    is_active=genre.is_active,
-                    categories={
-                        movie_category.id,
-                        documentary_category.id,
-                    },
-                )
-            ]
-        )
+        assert len(output["data"]) == 1  # type: ignore
+        assert output == {
+            "data": [genre],
+            "meta": ListResponseMeta(
+                current_page=1,
+                per_page=DEFAULT_PAGE_SIZE,
+                total=1,
+            ),
+        }
 
     def test_list_genres_without_associated_categories(self):
         """
@@ -77,19 +75,17 @@ class TestListGenre:
         genre_repository.save(genre)
 
         use_case = ListGenre(repository=genre_repository)
-        output = use_case.execute(input=ListGenre.Input())
+        output: ListResponse = use_case.execute(ListRequest(order_by="name"))
 
-        assert len(output.data) == 1
-        assert output == ListGenre.Output(
-            data=[
-                GenreOutput(
-                    id=genre.id,
-                    name=genre.name,
-                    is_active=genre.is_active,
-                    categories=set(),
-                )
-            ]
-        )
+        assert len(output["data"]) == 1  # type: ignore
+        assert output == {
+            "data": [genre],
+            "meta": ListResponseMeta(
+                current_page=1,
+                per_page=DEFAULT_PAGE_SIZE,
+                total=1,
+            ),
+        }
 
     def test_list_genres_empty_repository(self):
         """
@@ -106,7 +102,14 @@ class TestListGenre:
         genre_repository = InMemoryGenreRepository()
 
         use_case = ListGenre(repository=genre_repository)
-        output = use_case.execute(input=ListGenre.Input())
+        output: ListResponse = use_case.execute(ListRequest(order_by="name"))
 
-        assert len(output.data) == 0
-        assert output == ListGenre.Output(data=[])
+        assert len(output["data"]) == 0  # type: ignore
+        assert output == {
+            "data": [],
+            "meta": ListResponseMeta(
+                current_page=1,
+                per_page=DEFAULT_PAGE_SIZE,
+                total=0,
+            ),
+        }

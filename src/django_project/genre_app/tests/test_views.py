@@ -2,7 +2,6 @@ import uuid
 
 import pytest
 from rest_framework.status import (
-    HTTP_200_OK,
     HTTP_201_CREATED,
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
@@ -156,40 +155,45 @@ class TestListAPI:
         response = APIClient().get(url)
 
         # TODO: implement order before assert
-        # expected_response = {
-        #     "data": [
-        #         {
-        #             "id": str(romance_genre.id),
-        #             "name": romance_genre.name,
-        #             "is_active": romance_genre.is_active,
-        #             "categories": [
-        #                 str(movie_category.id),
-        #                 str(documentary_category.id),
-        #             ],
-        #         },
-        #         {
-        #             "id": str(drama_genre.id),
-        #             "name": drama_genre.name,
-        #             "is_active": drama_genre.is_active,
-        #             "categories": [],
-        #         },
-        #     ]
-        # }
-        # assert response.data["data"] == expected_response  # type: ignore
-
-        assert response.status_code == HTTP_200_OK  # type: ignore
-        assert response.data["data"]  # type: ignore
-        assert response.data["data"][0]["id"] == str(romance_genre.id)  # type: ignore
-        assert response.data["data"][0]["name"] == "Romance"  # type: ignore
-        assert response.data["data"][0]["is_active"] is True  # type: ignore
-        assert set(response.data["data"][0]["categories"]) == {  # type: ignore
-            str(documentary_category.id),
-            str(movie_category.id),
+        expected_response = {
+            "data": [
+                {
+                    "id": str(drama_genre.id),
+                    "name": drama_genre.name,
+                    "is_active": drama_genre.is_active,
+                    "categories": [],
+                },
+                {
+                    "id": str(romance_genre.id),
+                    "name": romance_genre.name,
+                    "is_active": romance_genre.is_active,
+                    "categories": [
+                        str(movie_category.id),
+                        str(documentary_category.id),
+                    ],
+                },
+            ],
+            # "meta": {
+            #     "current_page": 1,
+            #     "per_page": DEFAULT_PAGE_SIZE,
+            #     "total": 2,
+            # },
         }
-        assert response.data["data"][1]["id"] == str(drama_genre.id)  # type: ignore
-        assert response.data["data"][1]["name"] == "Drama"  # type: ignore
-        assert response.data["data"][1]["is_active"] is True  # type: ignore
-        assert response.data["data"][1]["categories"] == []  # type: ignore
+        assert response.data == expected_response  # type: ignore
+
+        # assert response.status_code == HTTP_200_OK  # type: ignore
+        # assert response.data["data"]  # type: ignore
+        # assert response.data["data"][0]["id"] == str(drama.id)  # type: ignore
+        # assert response.data["data"][0]["name"] == "Romance"  # type: ignore
+        # assert response.data["data"][0]["is_active"] is True  # type: ignore
+        # assert set(response.data["data"][0]["categories"]) == {  # type: ignore
+        #     str(documentary_category.id),
+        #     str(movie_category.id),
+        # }
+        # assert response.data["data"][1]["id"] == str(drama_genre.id)  # type: ignore
+        # assert response.data["data"][1]["name"] == "Drama"  # type: ignore
+        # assert response.data["data"][1]["is_active"] is True  # type: ignore
+        # assert response.data["data"][1]["categories"] == []  # type: ignore
 
 
 @pytest.mark.django_db
