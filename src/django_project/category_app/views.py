@@ -28,12 +28,12 @@ from src.django_project.category_app.repository import DjangoORMCategoryReposito
 from src.django_project.category_app.serializers import (
     CreateCategoryRequestSerializer,
     CreateCategoryResponseSerializer,
-    DeleteCategoryRequestSerializer,
     ListCategoryResponseSerializer,
     RetrieveCategoryRequestSerializer,
     RetrieveCategoryResponseSerializer,
     UpdateCategoryRequestSerializer,
 )
+from src.django_project.serializers import DeleteRequestSerializer
 
 
 # Create your views here.
@@ -176,7 +176,7 @@ class CategoryViewSet(viewsets.ViewSet):
             Response: A response object containing the deleted category data.
         """
 
-        serializer = DeleteCategoryRequestSerializer(data={"id": pk})
+        serializer = DeleteRequestSerializer(data={"id": pk})
         serializer.is_valid(raise_exception=True)
 
         req = DeleteRequest(id=pk)  # type: ignore
