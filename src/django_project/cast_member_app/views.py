@@ -29,10 +29,10 @@ from src.django_project.cast_member_app.repository import DjangoORMCastMemberRep
 from src.django_project.cast_member_app.serializers import (
     CreateCastMemberRequestSerializer,
     CreateCastMemberResponseSerializer,
-    DeleteCastMemberRequestSerializer,
     ListCastMemberResponseSerializer,
     UpdateCastMemberRequestSerializer,
 )
+from src.django_project.serializers import DeleteRequestSerializer
 
 
 class CastMemberViewSet(viewsets.ViewSet):
@@ -152,7 +152,7 @@ class CastMemberViewSet(viewsets.ViewSet):
             Response: A response object containing the deleted cast member data.
         """
 
-        serializer = DeleteCastMemberRequestSerializer(data={"id": pk})
+        serializer = DeleteRequestSerializer(data={"id": pk})
         serializer.is_valid(raise_exception=True)
 
         req = DeleteRequest(**serializer.validated_data)  # type: ignore
