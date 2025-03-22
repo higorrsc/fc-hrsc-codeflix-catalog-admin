@@ -7,6 +7,8 @@ from rest_framework.status import (
 )
 from rest_framework.test import APIClient
 
+from src.config import DEFAULT_PAGE_SIZE
+
 
 @pytest.mark.django_db
 class TestCreateAndEditCastMember:
@@ -47,7 +49,12 @@ class TestCreateAndEditCastMember:
                     "name": "Robert Downey Jr.",
                     "type": "ACTOR",
                 }
-            ]
+            ],
+            "meta": {
+                "current_page": 1,
+                "per_page": DEFAULT_PAGE_SIZE,
+                "total": 1,
+            },
         }
 
         update_response = api_client.put(
