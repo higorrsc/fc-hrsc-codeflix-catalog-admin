@@ -2,10 +2,13 @@ from unittest.mock import create_autospec
 
 import pytest
 
-from src.core.cast_member.application.use_cases.list_cast_member import (
-    CastMemberOutput,
-    ListCastMember,
+from src.config import DEFAULT_PAGE_SIZE
+from src.core._shared.application.use_cases.list import (
+    ListRequest,
+    ListResponse,
+    ListResponseMeta,
 )
+from src.core.cast_member.application.use_cases.list_cast_member import ListCastMember
 from src.core.cast_member.domain.cast_member import CastMember, CastMemberType
 from src.core.cast_member.domain.cast_member_repository import CastMemberRepository
 
@@ -58,7 +61,10 @@ class TestListCastMember:
         """
 
         repository = create_autospec(CastMemberRepository)
-        repository.list.return_value = [actor, director]
+        repository.list.return_value = [
+            director,
+            actor,
+        ]
         return repository
 
     def test_when_no_cast_members_exist(
@@ -70,9 +76,16 @@ class TestListCastMember:
         """
 
         use_case = ListCastMember(mock_empty_repository)
-        output = use_case.execute(ListCastMember.Input())
+        output: ListResponse = use_case.execute(ListRequest())
 
-        assert not output.data
+        assert output == {
+            "data": [],
+            "meta": ListResponseMeta(
+                current_page=1,
+                per_page=DEFAULT_PAGE_SIZE,
+                total=0,
+            ),
+        }
 
     def test_when_cast_members_exist(
         self,
@@ -86,20 +99,16 @@ class TestListCastMember:
         """
 
         use_case = ListCastMember(mock_repository)
-        output = use_case.execute(ListCastMember.Input())
+        output: ListResponse = use_case.execute(ListRequest(order_by="name"))
 
-        assert len(output.data) == 2
-        assert output == ListCastMember.Output(
-            data=[
-                CastMemberOutput(
-                    id=actor.id,
-                    name=actor.name,
-                    type=actor.type,
-                ),
-                CastMemberOutput(
-                    id=director.id,
-                    name=director.name,
-                    type=director.type,
-                ),
-            ]
-        )
+        assert output == {
+            "data": [
+                director,
+                actor,
+            ],
+            "meta": ListResponseMeta(
+                current_page=1,
+                per_page=DEFAULT_PAGE_SIZE,
+                total=2,
+            ),
+        }
