@@ -1,5 +1,5 @@
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from enum import Enum, auto, unique
 
 
@@ -36,10 +36,10 @@ class ImageMedia:
     Value object representing an image media.
     """
 
-    id: uuid.UUID
     check_sum: str
     name: str
     location: str
+    id: uuid.UUID = field(default_factory=uuid.uuid4)
 
 
 @dataclass(frozen=True)
@@ -48,9 +48,9 @@ class AudioVideoMedia:
     Value object representing an audio or video media.
     """
 
-    id: uuid.UUID
     check_sum: str
     name: str
     raw_location: str
     encoded_location: str
     status: MediaStatus
+    id: uuid.UUID = field(default_factory=uuid.uuid4)
