@@ -291,7 +291,6 @@ class TestVideoEntity:
         video_avatar.update_banner(new_image_media)
         assert video_avatar.banner == new_image_media
         assert video_avatar.notification.has_errors is False
-        assert video_avatar.banner.id == new_image_media.id  # type: ignore
         assert video_avatar.banner.check_sum == new_image_media.check_sum  # type: ignore
         assert video_avatar.banner.location == new_image_media.location  # type: ignore
         assert video_avatar.banner.name == new_image_media.name  # type: ignore
@@ -311,7 +310,6 @@ class TestVideoEntity:
         video_avatar.update_thumbnail(new_image_media)
         assert video_avatar.thumbnail == new_image_media
         assert video_avatar.notification.has_errors is False
-        assert video_avatar.thumbnail.id == new_image_media.id  # type: ignore
         assert video_avatar.thumbnail.check_sum == new_image_media.check_sum  # type: ignore
         assert video_avatar.thumbnail.location == new_image_media.location  # type: ignore
         assert video_avatar.thumbnail.name == new_image_media.name  # type: ignore
@@ -331,7 +329,6 @@ class TestVideoEntity:
         video_avatar.update_thumbnail_half(new_image_media)
         assert video_avatar.thumbnail_half == new_image_media
         assert video_avatar.notification.has_errors is False
-        assert video_avatar.thumbnail_half.id == new_image_media.id  # type: ignore
         assert video_avatar.thumbnail_half.check_sum == new_image_media.check_sum  # type: ignore
         assert video_avatar.thumbnail_half.location == new_image_media.location  # type: ignore
         assert video_avatar.thumbnail_half.name == new_image_media.name  # type: ignore
@@ -351,7 +348,6 @@ class TestVideoEntity:
         video_avatar.update_trailer(new_audio_video_media)
         assert video_avatar.trailer == new_audio_video_media
         assert video_avatar.notification.has_errors is False
-        assert video_avatar.trailer.id == new_audio_video_media.id  # type: ignore
         assert video_avatar.trailer.check_sum == new_audio_video_media.check_sum  # type: ignore
         assert video_avatar.trailer.raw_location == new_audio_video_media.raw_location  # type: ignore
         assert video_avatar.trailer.encoded_location == new_audio_video_media.encoded_location  # type: ignore
@@ -374,7 +370,6 @@ class TestVideoEntity:
         video_avatar.update_video(new_audio_video_media)
         assert video_avatar.video == new_audio_video_media
         assert video_avatar.notification.has_errors is False
-        assert video_avatar.video.id == new_audio_video_media.id  # type: ignore
         assert video_avatar.video.check_sum == new_audio_video_media.check_sum  # type: ignore
         assert video_avatar.video.raw_location == new_audio_video_media.raw_location  # type: ignore
         assert video_avatar.video.encoded_location == new_audio_video_media.encoded_location  # type: ignore
