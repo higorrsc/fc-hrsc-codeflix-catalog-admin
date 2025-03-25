@@ -10,7 +10,8 @@
     "startconsumer",
     "uuids",
     "venv",
-    "viewsets"
+    "viewsets",
+    "Worthington"
   ],
   "editor.codeActionsOnSave": {
     "source.addMissingImports": "always",

@@ -86,7 +86,7 @@ class CreateVideoWithoutMedia:
         self.__validate_cast_members(input, notification)
 
         if notification.has_errors:
-            raise RelatedEntitiesNotFound(notification)
+            raise RelatedEntitiesNotFound(notification.messages)
 
         try:
             video = Video(
