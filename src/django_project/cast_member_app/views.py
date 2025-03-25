@@ -9,6 +9,8 @@ from rest_framework.status import (
     HTTP_404_NOT_FOUND,
 )
 
+from src.core._shared.application.use_cases.delete import DeleteRequest
+from src.core._shared.application.use_cases.list import ListRequest, ListResponse
 from src.core.cast_member.application.exceptions import (
     CastMemberNotFound,
     InvalidCastMember,
@@ -27,10 +29,10 @@ from src.django_project.cast_member_app.repository import DjangoORMCastMemberRep
 from src.django_project.cast_member_app.serializers import (
     CreateCastMemberRequestSerializer,
     CreateCastMemberResponseSerializer,
-    DeleteCastMemberRequestSerializer,
     ListCastMemberResponseSerializer,
     UpdateCastMemberRequestSerializer,
 )
+from src.django_project.serializers import DeleteRequestSerializer
 
 
 class CastMemberViewSet(viewsets.ViewSet):
@@ -46,8 +48,18 @@ class CastMemberViewSet(viewsets.ViewSet):
             Response: A response containing a list of CastMemberOutput objects.
         """
 
+        order_by = request.query_params.get("order_by", "name")
+        reverse_order = request.query_params.get("sort", "asc")
+        current_page = request.query_params.get("current_page", 1)
+
         use_case = ListCastMember(DjangoORMCastMemberRepository())
-        res: ListCastMember.Output = use_case.execute(ListCastMember.Input())
+        res: ListResponse = use_case.execute(
+            ListRequest(
+                order_by=order_by,
+                sort=reverse_order,
+                current_page=int(current_page),
+            )
+        )
 
         serializer = ListCastMemberResponseSerializer(instance=res)
 
@@ -140,12 +152,10 @@ class CastMemberViewSet(viewsets.ViewSet):
             Response: A response object containing the deleted cast member data.
         """
 
-        serializer = DeleteCastMemberRequestSerializer(data={"id": pk})
+        serializer = DeleteRequestSerializer(data={"id": pk})
         serializer.is_valid(raise_exception=True)
 
-        req: DeleteCastMember.Input = DeleteCastMember.Input(
-            **serializer.validated_data,  # type: ignore
-        )
+        req = DeleteRequest(**serializer.validated_data)  # type: ignore
 
         use_case = DeleteCastMember(DjangoORMCastMemberRepository())
         try:

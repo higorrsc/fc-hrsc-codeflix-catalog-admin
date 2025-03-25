@@ -2,6 +2,7 @@ import uuid
 
 import pytest
 
+from src.core._shared.application.use_cases.delete import DeleteRequest
 from src.core.cast_member.application.exceptions import CastMemberNotFound
 from src.core.cast_member.application.use_cases.delete_cast_member import (
     DeleteCastMember,
@@ -35,7 +36,7 @@ class TestDeleteCastMember:
         assert repository.get_by_id(cast_member.id) == cast_member
 
         use_case = DeleteCastMember(repository)
-        use_case.execute(DeleteCastMember.Input(id=cast_member.id))
+        use_case.execute(DeleteRequest(id=cast_member.id))
 
         assert cast_member not in repository.list()
         assert repository.get_by_id(cast_member.id) is None
@@ -57,6 +58,6 @@ class TestDeleteCastMember:
 
         use_case = DeleteCastMember(repository)
         with pytest.raises(CastMemberNotFound):
-            use_case.execute(DeleteCastMember.Input(id=uuid.uuid4()))
+            use_case.execute(DeleteRequest(id=uuid.uuid4()))
 
         assert cast_member in repository.list()

@@ -3,6 +3,7 @@ from unittest.mock import create_autospec
 
 import pytest
 
+from src.core._shared.application.use_cases.delete import DeleteRequest
 from src.core.genre.application.exceptions import GenreNotFound
 from src.core.genre.application.use_cases.delete_genre import DeleteGenre
 from src.core.genre.domain.genre import Genre
@@ -42,7 +43,7 @@ class TestDeleteGenre:
         mock_genre_repository.get_by_id.return_value = genre  # type: ignore
 
         use_case = DeleteGenre(repository=mock_genre_repository)
-        use_case.execute(input=DeleteGenre.Input(id=genre.id))
+        use_case.execute(request=DeleteRequest(id=genre.id))  # type: ignore
 
         mock_genre_repository.delete.assert_called_once_with(genre_id=genre.id)  # type: ignore
 
@@ -63,6 +64,6 @@ class TestDeleteGenre:
         use_case = DeleteGenre(repository=mock_genre_repository)
 
         with pytest.raises(GenreNotFound, match="Genre with .* not found"):
-            use_case.execute(input=DeleteGenre.Input(id=uuid.uuid4()))
+            use_case.execute(request=DeleteRequest(id=uuid.uuid4()))
 
         mock_genre_repository.delete.assert_not_called()  # type: ignore

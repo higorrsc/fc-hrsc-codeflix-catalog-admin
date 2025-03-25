@@ -1,7 +1,11 @@
 import uuid
 from dataclasses import dataclass
-from typing import List
 
+from src.core._shared.application.use_cases.list import (
+    ListRequest,
+    ListResponse,
+    ListUseCase,
+)
 from src.core.genre.domain.genre_repository import GenreRepository
 
 
@@ -17,24 +21,10 @@ class GenreOutput:
     categories: set[uuid.UUID]
 
 
-class ListGenre:
+class ListGenre(ListUseCase):
     """
     List a genre by its ID.
     """
-
-    @dataclass
-    class Input:
-        """
-        Represents the request to list a genre by its ID.
-        """
-
-    @dataclass
-    class Output:
-        """
-        Represents the output of a genre.
-        """
-
-        data: List[GenreOutput]
 
     def __init__(self, repository: GenreRepository):
         """
@@ -43,24 +33,18 @@ class ListGenre:
         Args:
             repository (GenreRepository): The genre repository.
         """
-        self.repository = repository
 
-    def execute(self, input: Input) -> Output:
+        super().__init__(repository)
+
+    def execute(self, request: ListRequest) -> ListResponse:
         """
-        List all genres.
+        Executes the ListGenre use case to list genres based on request parameters.
+
+        Args:
+            request (ListRequest): The request object containing sorting and pagination details.
 
         Returns:
-            ListGenre.Output: A list of genres.
+            ListResponse: A response containing the list of genres and pagination metadata.
         """
-        genres = self.repository.list()
-        mapped_genres: List[GenreOutput] = [
-            GenreOutput(
-                id=genre.id,
-                name=genre.name,
-                is_active=genre.is_active,
-                categories=genre.categories,
-            )
-            for genre in genres
-        ]
 
-        return self.Output(data=mapped_genres)
+        return super().execute(request)

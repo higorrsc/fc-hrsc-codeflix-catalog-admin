@@ -10,6 +10,7 @@ from rest_framework.status import (
 )
 from rest_framework.test import APIClient
 
+from src.config import DEFAULT_PAGE_SIZE
 from src.core.category.domain.category import Category
 from src.django_project.category_app.repository import DjangoORMCategoryRepository
 
@@ -97,7 +98,12 @@ class TestListAPI:
                     "description": category_tv_show.description,
                     "is_active": category_tv_show.is_active,
                 },
-            ]
+            ],
+            "meta": {
+                "current_page": 1,
+                "per_page": DEFAULT_PAGE_SIZE,
+                "total": 2,
+            },
         }
 
         response = APIClient().get(url)

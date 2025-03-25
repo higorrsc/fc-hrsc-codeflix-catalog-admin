@@ -1,3 +1,4 @@
+from src.core._shared.application.use_cases.delete import DeleteRequest
 from src.core.genre.application.use_cases.delete_genre import DeleteGenre
 from src.core.genre.domain.genre import Genre
 from src.core.genre.infra.in_memory_genre_repository import InMemoryGenreRepository
@@ -23,7 +24,7 @@ class TestDeleteGenre:
         assert repository.get_by_id(genre.id) == genre
 
         use_case = DeleteGenre(repository=repository)
-        use_case.execute(input=DeleteGenre.Input(id=genre.id))
+        use_case.execute(request=DeleteRequest(id=genre.id))
 
         assert repository.get_by_id(genre.id) is None
         assert len(repository.genres) == 0

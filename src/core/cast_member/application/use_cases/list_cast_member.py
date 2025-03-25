@@ -1,7 +1,11 @@
 import uuid
 from dataclasses import dataclass
-from typing import List
 
+from src.core._shared.application.use_cases.list import (
+    ListRequest,
+    ListResponse,
+    ListUseCase,
+)
 from src.core.cast_member.domain.cast_member import CastMemberType
 from src.core.cast_member.domain.cast_member_repository import CastMemberRepository
 
@@ -17,7 +21,7 @@ class CastMemberOutput:
     type: CastMemberType
 
 
-class ListCastMember:
+class ListCastMember(ListUseCase):
     """
     List all cast members
     """
@@ -30,38 +34,17 @@ class ListCastMember:
             repository (CastMemberRepository): The cast member repository.
         """
 
-        self.repository = repository
+        super().__init__(repository)
 
-    @dataclass
-    class Input:
+    def execute(self, request: ListRequest) -> ListResponse:
         """
-        Input for the ListCastMember use case
-        """
+        Executes the ListCastMember use case to list cast members based on request parameters.
 
-    @dataclass
-    class Output:
-        """
-        Output for the ListCastMember use case
-        """
-
-        data: List[CastMemberOutput]
-
-    def execute(self, input: Input) -> Output:
-        """
-        List all cast members
+        Args:
+            request (ListRequest): The request object containing sorting and pagination details.
 
         Returns:
-            ListCastMember.Output: A list of cast members
+            ListResponse: A response containing the list of cast members and pagination metadata.
         """
 
-        cast_members = self.repository.list()
-        return ListCastMember.Output(
-            data=[
-                CastMemberOutput(
-                    id=cast_member.id,
-                    name=cast_member.name,
-                    type=cast_member.type,
-                )
-                for cast_member in cast_members
-            ]
-        )
+        return super().execute(request)

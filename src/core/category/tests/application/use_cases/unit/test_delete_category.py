@@ -3,11 +3,9 @@ from unittest.mock import create_autospec
 
 import pytest
 
+from src.core._shared.application.use_cases.delete import DeleteRequest
 from src.core.category.application.exceptions import CategoryNotFound
-from src.core.category.application.use_cases.delete_category import (
-    DeleteCategory,
-    DeleteCategoryRequest,
-)
+from src.core.category.application.use_cases.delete_category import DeleteCategory
 from src.core.category.domain.category import Category
 from src.core.category.domain.category_repository import CategoryRepository
 
@@ -19,9 +17,11 @@ class TestDeleteCategory:
 
     def test_delete_category_from_repository(self):
         """
-        When calling delete_category() with a valid category ID, it deletes the category from the repository.
+        When calling delete_category() with a valid category ID, it deletes the
+        category from the repository.
 
-        This test verifies that the `delete_category` use case successfully deletes a category by its ID from the repository.
+        This test verifies that the `delete_category` use case successfully
+        deletes a category by its ID from the repository.
 
         """
         category = Category("Action", "Action movies")
@@ -29,7 +29,7 @@ class TestDeleteCategory:
         mock_repository.get_by_id.return_value = category
 
         use_case = DeleteCategory(mock_repository)
-        use_case.execute(DeleteCategoryRequest(id=category.id))
+        use_case.execute(DeleteRequest(id=category.id))
 
         mock_repository.delete.assert_called_once_with(category.id)
 
@@ -42,6 +42,7 @@ class TestDeleteCategory:
         `CategoryNotFound` exception when the given category ID does not exist in
         the repository.
         """
+
         mock_repository = create_autospec(CategoryRepository)
         mock_repository.get_by_id.return_value = None
 
@@ -52,7 +53,7 @@ class TestDeleteCategory:
             CategoryNotFound,
             match=f"Category with ID {not_found_id} not found",
         ):
-            use_case.execute(DeleteCategoryRequest(id=not_found_id))
+            use_case.execute(DeleteRequest(id=not_found_id))
 
         mock_repository.delete.assert_not_called()
         assert mock_repository.delete.called is False

@@ -2,8 +2,14 @@ from unittest.mock import create_autospec
 
 import pytest
 
+from src.config import DEFAULT_PAGE_SIZE
+from src.core._shared.application.use_cases.list import (
+    ListRequest,
+    ListResponse,
+    ListResponseMeta,
+)
 from src.core.category.domain.category import Category
-from src.core.genre.application.use_cases.list_genre import GenreOutput, ListGenre
+from src.core.genre.application.use_cases.list_genre import ListGenre
 from src.core.genre.domain.genre import Genre
 from src.core.genre.domain.genre_repository import GenreRepository
 
@@ -123,24 +129,19 @@ class TestListGenre:
         """
 
         use_case = ListGenre(repository=mock_genre_repository)
-        output = use_case.execute(input=ListGenre.Input())
+        output: ListResponse = use_case.execute(ListRequest(order_by="name"))
 
-        assert output == ListGenre.Output(
-            data=[
-                GenreOutput(
-                    id=horror_genre.id,
-                    name=horror_genre.name,
-                    is_active=horror_genre.is_active,
-                    categories=horror_genre.categories,
-                ),
-                GenreOutput(
-                    id=noir_genre.id,
-                    name=noir_genre.name,
-                    is_active=noir_genre.is_active,
-                    categories=noir_genre.categories,
-                ),
-            ]
-        )
+        assert output == {
+            "data": [
+                horror_genre,
+                noir_genre,
+            ],
+            "meta": ListResponseMeta(
+                current_page=1,
+                per_page=DEFAULT_PAGE_SIZE,
+                total=2,
+            ),
+        }
 
     def test_when_no_genre_exists_return_empty_list(
         self,
@@ -157,6 +158,14 @@ class TestListGenre:
         """
 
         use_case = ListGenre(repository=mock_empty_genre_repository)
-        output = use_case.execute(input=ListGenre.Input())
+        output: ListResponse = use_case.execute(ListRequest())
+        expected_data = {
+            "data": [],
+            "meta": ListResponseMeta(
+                current_page=1,
+                per_page=DEFAULT_PAGE_SIZE,
+                total=0,
+            ),
+        }
 
-        assert output == ListGenre.Output(data=[])
+        assert output == expected_data

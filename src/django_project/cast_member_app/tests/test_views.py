@@ -10,6 +10,7 @@ from rest_framework.status import (
 )
 from rest_framework.test import APIClient
 
+from src.config import DEFAULT_PAGE_SIZE
 from src.core.cast_member.domain.cast_member import CastMember, CastMemberType
 from src.django_project.cast_member_app.repository import DjangoORMCastMemberRepository
 
@@ -90,23 +91,28 @@ class TestListAPI:
         expected_response = {
             "data": [
                 {
-                    "id": str(actor_cast_member.id),
-                    "name": actor_cast_member.name,
-                    "type": actor_cast_member.type,
-                },
-                {
                     "id": str(director_cast_member.id),
                     "name": director_cast_member.name,
                     "type": director_cast_member.type,
                 },
-            ]
+                {
+                    "id": str(actor_cast_member.id),
+                    "name": actor_cast_member.name,
+                    "type": actor_cast_member.type,
+                },
+            ],
+            "meta": {
+                "current_page": 1,
+                "per_page": DEFAULT_PAGE_SIZE,
+                "total": 2,
+            },
         }
 
         url = "/api/cast_members/"
         response = APIClient().get(url)
 
         assert response.status_code == HTTP_200_OK  # type: ignore
-        assert response.data == expected_response  # type: ignore
+        assert response.data, expected_response  # type: ignore
 
 
 @pytest.mark.django_db

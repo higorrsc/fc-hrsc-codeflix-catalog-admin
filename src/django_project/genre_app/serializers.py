@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from src.django_project.serializers import ListResponseSerializer
+
 
 class SetField(serializers.ListField):
     """
@@ -31,12 +33,17 @@ class GenreResponseSerializer(serializers.Serializer):
     categories = serializers.ListField(child=serializers.UUIDField())
 
 
-class ListGenreResponseSerializer(serializers.Serializer):
+class ListGenreResponseSerializer(ListResponseSerializer):
     """
     Serializer for list genre response
     """
 
-    data = GenreResponseSerializer(many=True)  # type: ignore
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            child_serializer=GenreResponseSerializer,
+            *args,
+            **kwargs,
+        )
 
 
 class CreateGenreRequestSerializer(serializers.Serializer):
@@ -66,11 +73,3 @@ class UpdateGenreRequestSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255, allow_blank=False)
     is_active = serializers.BooleanField()
     categories = SetField(child=serializers.UUIDField())
-
-
-class DeleteGenreRequestSerializer(serializers.Serializer):
-    """
-    Serializer for delete genre request
-    """
-
-    id = serializers.UUIDField()

@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from src.django_project.serializers import ListResponseSerializer
+
 
 class CategoryResponseSerializer(serializers.Serializer):
     """
@@ -12,23 +14,13 @@ class CategoryResponseSerializer(serializers.Serializer):
     is_active = serializers.BooleanField()
 
 
-class ListOutputMetaSerializer(serializers.Serializer):
-    """
-    Serializer for list output meta
-    """
-
-    current_page = serializers.IntegerField()
-    per_page = serializers.IntegerField()
-    total = serializers.IntegerField()
-
-
-class ListCategoryResponseSerializer(serializers.Serializer):
-    """
-    Serializer for list category response
-    """
-
-    data = CategoryResponseSerializer(many=True)  # type: ignore
-    meta = ListOutputMetaSerializer()
+class ListCategoryResponseSerializer(ListResponseSerializer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            child_serializer=CategoryResponseSerializer,
+            *args,
+            **kwargs,
+        )
 
 
 class RetrieveCategoryResponseSerializer(serializers.Serializer):
@@ -74,11 +66,3 @@ class UpdateCategoryRequestSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255, allow_blank=False)
     description = serializers.CharField()
     is_active = serializers.BooleanField()
-
-
-class DeleteCategoryRequestSerializer(serializers.Serializer):
-    """
-    Serializer for delete category request
-    """
-
-    id = serializers.UUIDField()

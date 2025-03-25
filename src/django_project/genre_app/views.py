@@ -9,6 +9,8 @@ from rest_framework.status import (
     HTTP_404_NOT_FOUND,
 )
 
+from src.core._shared.application.use_cases.delete import DeleteRequest
+from src.core._shared.application.use_cases.list import ListRequest, ListResponse
 from src.core.genre.application.exceptions import (
     GenreNotFound,
     InvalidGenre,
@@ -23,10 +25,10 @@ from src.django_project.genre_app.repository import DjangoORMGenreRepository
 from src.django_project.genre_app.serializers import (
     CreateGenreRequestSerializer,
     CreateGenreResponseSerializer,
-    DeleteGenreRequestSerializer,
     ListGenreResponseSerializer,
     UpdateGenreRequestSerializer,
 )
+from src.django_project.serializers import DeleteRequestSerializer
 
 
 # Create your views here.
@@ -46,9 +48,18 @@ class GenreViewSet(viewsets.ViewSet):
             Response: A response object containing a list of categories with their
                     id, name, description, and active status.
         """
+        order_by = request.query_params.get("order_by", "name")
+        reverse_order = request.query_params.get("sort", "asc")
+        current_page = request.query_params.get("current_page", 1)
 
         use_case = ListGenre(DjangoORMGenreRepository())
-        res: ListGenre.Output = use_case.execute(ListGenre.Input())
+        res: ListResponse = use_case.execute(
+            ListRequest(
+                order_by=order_by,
+                sort=reverse_order,
+                current_page=int(current_page),
+            )
+        )  # type: ignore
 
         serializer = ListGenreResponseSerializer(instance=res)
 
@@ -144,10 +155,10 @@ class GenreViewSet(viewsets.ViewSet):
             Response: A response object containing the deleted genre data.
         """
 
-        serializer = DeleteGenreRequestSerializer(data={"id": pk})
+        serializer = DeleteRequestSerializer(data={"id": pk})
         serializer.is_valid(raise_exception=True)
 
-        req = DeleteGenre.Input(id=pk)  # type: ignore
+        req = DeleteRequest(id=pk)  # type: ignore
         use_case = DeleteGenre(DjangoORMGenreRepository())
         try:
             use_case.execute(req)
