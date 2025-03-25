@@ -1,9 +1,10 @@
 import uuid
 
 from src.core.video.domain.video import Video
+from src.core.video.domain.video_repository import VideoRepository
 
 
-class InMemoryVideoRepository:
+class InMemoryVideoRepository(VideoRepository):
     def __init__(self, videos=None):
         """
         Initialize the in-memory video repository.
