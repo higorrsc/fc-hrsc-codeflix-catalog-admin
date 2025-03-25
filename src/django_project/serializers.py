@@ -8,9 +8,37 @@ TSerializer = TypeVar(
 )
 
 
+class SetField(serializers.ListField):
+    """
+    Serializer for set field
+    """
+
+    def to_internal_value(self, data):  # type: ignore
+        """
+        Override to_internal_value to convert the list of uuids to a set
+        """
+
+        return set(super().to_internal_value(data))
+
+    def to_representation(self, data):
+        """
+        Override to_representation to convert the set of uuids to a list.
+        """
+
+        return list(super().to_representation(data))
+
+
+class CreateResponseSerializer(serializers.Serializer):
+    """
+    Generic serializer for create response
+    """
+
+    id = serializers.UUIDField()
+
+
 class ListMetaSerializer(serializers.Serializer):
     """
-    Serializer for pagination meta
+    Generic serializer for pagination meta
     """
 
     current_page = serializers.IntegerField()

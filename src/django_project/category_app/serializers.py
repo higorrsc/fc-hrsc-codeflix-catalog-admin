@@ -49,14 +49,6 @@ class CreateCategoryRequestSerializer(serializers.Serializer):
     is_active = serializers.BooleanField(default=True)
 
 
-class CreateCategoryResponseSerializer(serializers.Serializer):
-    """
-    Serializer for create category response
-    """
-
-    id = serializers.UUIDField()
-
-
 class UpdateCategoryRequestSerializer(serializers.Serializer):
     """
     Serializer for update category request

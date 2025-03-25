@@ -82,14 +82,6 @@ class CreateCastMemberRequestSerializer(serializers.Serializer):
     type = CastMemberTypeField(required=True)
 
 
-class CreateCastMemberResponseSerializer(serializers.Serializer):
-    """
-    Serializer for create cast member response
-    """
-
-    id = serializers.UUIDField()
-
-
 class UpdateCastMemberRequestSerializer(serializers.Serializer):
     """
     Serializer for update cast member request
