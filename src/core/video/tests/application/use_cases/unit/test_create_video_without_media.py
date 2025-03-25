@@ -195,6 +195,14 @@ class TesteCreateVideoWithoutMedia:
         actor_cast_member: CastMember,
         director_cast_member: CastMember,
     ):
+        """
+        When creating a video with valid data, it returns a VideoOutput and saves the Video
+        in the repository.
+
+        This test verifies that the `create_video_without_media` use case returns a VideoOutput
+        and saves the Video in the provided repository when given valid data.
+        """
+
         use_case = CreateVideoWithoutMedia(
             video_repository=mock_video_repository,
             category_repository=mock_category_repository,
@@ -258,6 +266,14 @@ class TesteCreateVideoWithoutMedia:
         mock_genre_repository: GenreRepository,
         mock_cast_member_repository: CastMemberRepository,
     ):
+        """
+        When creating a video with valid data and a title longer than 255 characters,
+        it raises a InvalidVideo exception.
+
+        This test verifies that the `create_video_without_media` use case raises a
+        `InvalidVideo` exception when the given title is longer than 255 characters.
+        """
+
         use_case = CreateVideoWithoutMedia(
             video_repository=mock_video_repository,
             category_repository=mock_category_repository,
