@@ -27,11 +27,11 @@ class CreateVideoWithoutMedia:
         description: str
         launch_year: int
         duration: Decimal
-        published: bool
         rating: Rating
         categories: set[uuid.UUID]
         genres: set[uuid.UUID]
         cast_members: set[uuid.UUID]
+        published: bool = False
 
     @dataclass
     class Output:
