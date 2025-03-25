@@ -24,7 +24,11 @@ class Video(models.Model):
         max_digits=10,
         decimal_places=2,
     )
-    published = models.BooleanField()
+    published = models.BooleanField(
+        default=False,
+        null=False,
+        blank=False,
+    )
     rating = models.CharField(
         max_length=10,
         choices=RATING_CHOICES,
