@@ -5,6 +5,7 @@ from django.db import transaction
 
 from src.core.video.domain.video import Video
 from src.core.video.domain.video_repository import VideoRepository
+from src.django_project.video_app.models import AudioVideoMedia as AudioVideoMediaModel
 from src.django_project.video_app.models import Video as VideoModel
 
 
@@ -72,10 +73,7 @@ class DjangoORMVideoRepository(VideoRepository):
             id (uuid.UUID): The ID of the video to be deleted.
         """
 
-        try:
-            self.video_model.objects.filter(pk=video_id).delete()
-        except self.video_model.DoesNotExist:
-            return None
+        self.video_model.objects.filter(pk=video_id).delete()
 
     def update(self, video: Video) -> None:
         """
@@ -91,17 +89,29 @@ class DjangoORMVideoRepository(VideoRepository):
             return None
 
         with transaction.atomic():
-            video_model.id = video.id
+            AudioVideoMediaModel.objects.filter(id=video_model.id).delete()
             video_model.title = video.title
             video_model.description = video.description
             video_model.launch_year = video.launch_year
             video_model.duration = video.duration
             video_model.published = video.published
             video_model.rating = video.rating  # type: ignore
-            video_model.save()
             video_model.categories.set(video.categories)
             video_model.genres.set(video.genres)
             video_model.cast_members.set(video.cast_members)
+            video_model.video = (
+                AudioVideoMediaModel.objects.create(  # type: ignore
+                    name=video.video.name,  # type: ignore
+                    raw_location=video.video.raw_location,  # type: ignore
+                    encoded_location=video.video.encoded_location,  # type: ignore
+                    check_sum=video.video.check_sum,  # type: ignore
+                    status=video.video.status,  # type: ignore
+                )
+                if video.video
+                else None
+            )
+            video_model.save()
+        return None
 
     def list(self) -> List[Video]:
         """
@@ -114,21 +124,6 @@ class DjangoORMVideoRepository(VideoRepository):
         return [
             VideoModelMapper.to_entity(video_model)
             for video_model in self.video_model.objects.all()
-            # Video(
-            #     id=video.id,
-            #     title=video.title,
-            #     description=video.description,
-            #     launch_year=video.launch_year,
-            #     duration=video.duration,
-            #     published=video.published,
-            #     rating=video.rating,  # type: ignore
-            #     categories={category.id for category in video.categories.all()},
-            #     genres={genre.id for genre in video.genres.all()},
-            #     cast_members={
-            #         cast_member.id for cast_member in video.cast_members.all()
-            #     },
-            # )
-            # for video in VideoModel.objects.all()
         ]
 
 
