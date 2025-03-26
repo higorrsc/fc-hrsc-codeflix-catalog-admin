@@ -7,7 +7,7 @@ from src.core._shared.domain.entity import AbstractEntity
 from src.core.video.domain.value_objects import AudioVideoMedia, ImageMedia, Rating
 
 
-@dataclass
+@dataclass(slots=True, kw_only=True)
 class Video(AbstractEntity):
     """
     Entity representing a video.
@@ -18,7 +18,7 @@ class Video(AbstractEntity):
     launch_year: int
     duration: Decimal
     rating: Rating
-    published: bool = field(default=False, init=False)
+    published: bool = field(default=False)
 
     categories: set[uuid.UUID]
     genres: set[uuid.UUID]

@@ -178,6 +178,7 @@ class VideoModelMapper:
             launch_year=video_model.launch_year,
             duration=video_model.duration,
             rating=video_model.rating,  # type: ignore
+            published=video_model.published,
             categories={category.id for category in video_model.categories.all()},
             genres={genre.id for genre in video_model.genres.all()},
             cast_members={
