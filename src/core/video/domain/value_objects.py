@@ -35,9 +35,9 @@ class ImageMedia:
     Value object representing an image media.
     """
 
-    check_sum: str
     name: str
     location: str
+    check_sum: str = ""
 
 
 @dataclass(frozen=True)
@@ -46,8 +46,8 @@ class AudioVideoMedia:
     Value object representing an audio or video media.
     """
 
-    check_sum: str
     name: str
     raw_location: str
     encoded_location: str
     status: MediaStatus
+    check_sum: str = ""
