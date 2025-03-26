@@ -114,7 +114,6 @@ class TestSave:
             the world he feels is his home.""",
             duration=162.0,  # type: ignore
             launch_year=2009,
-            published=False,
             rating=Rating.AGE_12,
             categories=set(),
             genres=set(),
@@ -175,7 +174,6 @@ class TestSave:
             the world he feels is his home.""",
             duration=162.0,  # type: ignore
             launch_year=2009,
-            published=False,
             rating=Rating.AGE_12,
             categories={
                 movie_category.id,
@@ -227,7 +225,6 @@ class TestGetById:
             the world he feels is his home.""",
             duration=162.0,  # type: ignore
             launch_year=2009,
-            published=False,
             rating=Rating.AGE_12,
             categories=set(),
             genres=set(),
@@ -289,7 +286,6 @@ class TestGetById:
             the world he feels is his home.""",
             duration=162.0,  # type: ignore
             launch_year=2009,
-            published=False,
             rating=Rating.AGE_12,
             categories={movie_category.id},
             genres={action_genre.id},
@@ -344,7 +340,6 @@ class TestDelete:
             the world he feels is his home.""",
             duration=162.0,  # type: ignore
             launch_year=2009,
-            published=False,
             rating=Rating.AGE_12,
             categories=set(),
             genres=set(),
@@ -405,7 +400,6 @@ class TestDelete:
             the world he feels is his home.""",
             duration=162.0,  # type: ignore
             launch_year=2009,
-            published=False,
             rating=Rating.AGE_12,
             categories={movie_category.id},
             genres={action_genre.id},
@@ -441,7 +435,6 @@ class TestUpdate:
             the world he feels is his home.""",
             duration=162.0,  # type: ignore
             launch_year=2009,
-            published=False,
             rating=Rating.AGE_12,
             categories=set(),
             genres=set(),
@@ -502,7 +495,6 @@ class TestUpdate:
             the world he feels is his home.""",
             duration=162.0,  # type: ignore
             launch_year=2009,
-            published=False,
             rating=Rating.AGE_12,
             categories=set(),
             genres=set(),
@@ -555,7 +547,6 @@ class TestList:
             the world he feels is his home.""",
             duration=162.0,  # type: ignore
             launch_year=2009,
-            published=False,
             rating=Rating.AGE_12,
             categories=set(),
             genres=set(),
@@ -568,7 +559,6 @@ class TestList:
             Jake must work with Neytiri and the army of the Na'vi race to protect their home.""",
             duration=192.0,  # type: ignore
             launch_year=2022,
-            published=False,
             rating=Rating.AGE_14,
             categories=set(),
             genres=set(),
@@ -618,7 +608,6 @@ class TestList:
             the world he feels is his home.""",
             duration=162.0,  # type: ignore
             launch_year=2009,
-            published=False,
             rating=Rating.AGE_12,
             categories={movie_category.id},
             genres={action_genre.id},
@@ -631,7 +620,6 @@ class TestList:
             Jake must work with Neytiri and the army of the Na'vi race to protect their home.""",
             duration=192.0,  # type: ignore
             launch_year=2022,
-            published=False,
             rating=Rating.AGE_14,
             categories={movie_category.id},
             genres={adventure_genre.id},

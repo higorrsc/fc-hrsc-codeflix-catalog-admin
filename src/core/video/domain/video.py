@@ -1,9 +1,9 @@
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from decimal import Decimal
 from typing import Optional
 
-from src.core._shared.entity import AbstractEntity
+from src.core._shared.domain.entity import AbstractEntity
 from src.core.video.domain.value_objects import AudioVideoMedia, ImageMedia, Rating
 
 
@@ -17,8 +17,8 @@ class Video(AbstractEntity):
     description: str
     launch_year: int
     duration: Decimal
-    published: bool
     rating: Rating
+    published: bool = field(default=False, init=False)
 
     categories: set[uuid.UUID]
     genres: set[uuid.UUID]

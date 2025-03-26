@@ -112,7 +112,6 @@ def avatar_video() -> Video:
         the world he feels is his home.""",
         duration=162.0,  # type: ignore
         launch_year=2009,
-        published=False,
         rating=Rating.AGE_12,
         categories=set(),
         genres=set(),
