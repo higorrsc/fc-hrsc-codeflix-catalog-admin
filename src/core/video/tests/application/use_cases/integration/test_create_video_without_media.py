@@ -176,6 +176,9 @@ def cast_member_repository(
 
 
 class TesteCreateVideoWithoutMedia:
+    """
+    Test suite for the CreateVideoWithoutMedia use case.
+    """
 
     def test_create_video_with_valid_data(
         self,
@@ -188,6 +191,14 @@ class TesteCreateVideoWithoutMedia:
         actor_cast_member: CastMember,
         director_cast_member: CastMember,
     ):
+        """
+        When creating a video with valid data, it returns a VideoOutput and saves the
+        Video in the repository.
+
+        This test verifies that the `create_video_without_media` use case returns a
+        VideoOutput and saves the Video in the provided repository when given valid
+        data.
+        """
 
         repository = InMemoryVideoRepository()
         use_case = CreateVideoWithoutMedia(
@@ -235,6 +246,15 @@ class TesteCreateVideoWithoutMedia:
         genre_repository: GenreRepository,
         cast_member_repository: CastMemberRepository,
     ):
+        """
+        Tests that the CreateVideoWithoutMedia use case raises an InvalidVideo
+        exception when an empty title is provided.
+
+        This test verifies that the `create_video_without_media` use case raises an
+        `InvalidVideo` exception when the video title is an empty string, ensuring
+        that the title field is validated correctly.
+        """
+
         repository = InMemoryVideoRepository()
         use_case = CreateVideoWithoutMedia(
             video_repository=repository,
@@ -267,6 +287,15 @@ class TesteCreateVideoWithoutMedia:
         genre_repository: GenreRepository,
         cast_member_repository: CastMemberRepository,
     ):
+        """
+        Tests that the CreateVideoWithoutMedia use case raises an InvalidVideo
+        exception when the title is longer than 255 characters.
+
+        This test verifies that the `create_video_without_media` use case raises an
+        `InvalidVideo` exception when the given title is longer than 255 characters,
+        ensuring that the title field is validated correctly.
+        """
+
         repository = InMemoryVideoRepository()
         use_case = CreateVideoWithoutMedia(
             video_repository=repository,

@@ -181,6 +181,9 @@ def mock_video_repository(avatar_video: Video) -> VideoRepository:
 
 
 class TesteCreateVideoWithoutMedia:
+    """
+    Test suite for the CreateVideoWithoutMedia use case.
+    """
 
     def test_create_video_with_valid_data(
         self,
@@ -233,6 +236,15 @@ class TesteCreateVideoWithoutMedia:
         mock_genre_repository: GenreRepository,
         mock_cast_member_repository: CastMemberRepository,
     ):
+        """
+        Tests that the CreateVideoWithoutMedia use case raises an InvalidVideo
+        exception when an empty title is provided.
+
+        This test verifies that the `create_video_without_media` use case raises an
+        `InvalidVideo` exception when the video title is an empty string, ensuring
+        that the title field is validated correctly.
+        """
+
         use_case = CreateVideoWithoutMedia(
             video_repository=mock_video_repository,
             category_repository=mock_category_repository,
