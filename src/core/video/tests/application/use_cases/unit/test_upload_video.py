@@ -1,4 +1,5 @@
 import uuid
+from pathlib import Path
 from unittest.mock import create_autospec
 
 import pytest
@@ -61,7 +62,7 @@ class TestUploadVideo:
         )
 
         mock_storage.store.assert_called_once_with(
-            file_path=f"videos/{video.id}/avatar.mp4",
+            file_path=str(Path("videos") / str(video.id) / "avatar.mp4"),
             content=b"avatar_movie_test",
             content_type="video/mp4",
         )
@@ -69,7 +70,7 @@ class TestUploadVideo:
         video_from_repository = video_repository.get_by_id(video.id)
         assert video_from_repository.video == AudioVideoMedia(  # type: ignore
             name="avatar.mp4",
-            raw_location=f"videos/{video.id}/avatar.mp4",
+            raw_location=str(Path("videos") / str(video.id) / "avatar.mp4"),
             encoded_location="",
             status=MediaStatus.PENDING,
         )
