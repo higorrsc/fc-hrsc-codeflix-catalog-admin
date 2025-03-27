@@ -1,12 +1,25 @@
+import uuid
+
 from rest_framework import viewsets
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.status import HTTP_201_CREATED, HTTP_400_BAD_REQUEST
+from rest_framework.status import (
+    HTTP_200_OK,
+    HTTP_201_CREATED,
+    HTTP_400_BAD_REQUEST,
+    HTTP_404_NOT_FOUND,
+)
 
-from src.core.video.application.exceptions import InvalidVideo, RelatedEntitiesNotFound
+from src.core._shared.infrastructure.storage.local_storage import LocalStorage
+from src.core.video.application.exceptions import (
+    InvalidVideo,
+    RelatedEntitiesNotFound,
+    VideoNotFound,
+)
 from src.core.video.application.use_cases.create_video_without_media import (
     CreateVideoWithoutMedia,
 )
+from src.core.video.application.use_cases.upload_video import UploadVideo
 from src.django_project.cast_member_app.repository import DjangoORMCastMemberRepository
 from src.django_project.category_app.repository import DjangoORMCategoryRepository
 from src.django_project.genre_app.repository import DjangoORMGenreRepository
@@ -122,12 +135,40 @@ class VideoViewSet(viewsets.ViewSet):
         """
         Partially update a video by its id.
 
+        This endpoint allows partial update of a video, specifically the video file.
+
         Args:
             request (Request): The request object containing request data.
-            pk (str): The id of the video to be partially updated.
+            pk (str): The id of the video to be updated.
 
         Returns:
-            Response: A response object containing the partially updated video data.
+            Response: A response object containing the updated video data.
         """
 
-        raise NotImplementedError
+        file = request.FILES["video_file"]  # type: ignore
+        content = file.read()  # type: ignore
+        content_type = file.content_type  # type: ignore
+
+        use_case = UploadVideo(
+            DjangoORMVideoRepository(),
+            LocalStorage(),
+        )
+
+        try:
+            use_case.execute(
+                UploadVideo.Input(
+                    video_id=uuid.UUID(pk),
+                    file_name=file.name,  # type: ignore
+                    content=content,
+                    content_type=content_type,  # type: ignore
+                )
+            )
+        except VideoNotFound:
+            return Response(
+                data={"error": "Video not found"},
+                status=HTTP_404_NOT_FOUND,
+            )
+
+        return Response(
+            status=HTTP_200_OK,
+        )
