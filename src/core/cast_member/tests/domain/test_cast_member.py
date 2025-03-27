@@ -235,8 +235,16 @@ class TestEquality:
         """
 
         common_id = uuid.uuid4()
-        cast_member1 = CastMember("Clint Eastwood", CastMemberType.ACTOR, common_id)
-        cast_member2 = CastMember("Clint Eastwood", CastMemberType.ACTOR, common_id)
+        cast_member1 = CastMember(
+            "Clint Eastwood",
+            CastMemberType.ACTOR,
+            id=common_id,
+        )
+        cast_member2 = CastMember(
+            "Clint Eastwood",
+            CastMemberType.ACTOR,
+            id=common_id,
+        )
 
         assert cast_member1 == cast_member2
 
@@ -247,8 +255,16 @@ class TestEquality:
         """
 
         common_id = uuid.uuid4()
-        cast_member1 = CastMember("Clint Eastwood", CastMemberType.ACTOR, common_id)
-        cast_member2 = CastMember("Clint Eastwood", CastMemberType.DIRECTOR, common_id)
+        cast_member1 = CastMember(
+            "Clint Eastwood",
+            CastMemberType.ACTOR,
+            id=common_id,
+        )
+        cast_member2 = CastMember(
+            "Clint Eastwood",
+            CastMemberType.DIRECTOR,
+            id=common_id,
+        )
 
         assert cast_member1 != cast_member2
 
@@ -263,7 +279,11 @@ class TestEquality:
             """
 
         common_id = uuid.uuid4()
-        cast_member1 = CastMember("Clint Eastwood", CastMemberType.ACTOR, common_id)
+        cast_member1 = CastMember(
+            "Clint Eastwood",
+            CastMemberType.ACTOR,
+            id=common_id,
+        )
         dummy = Dummy()
         dummy.id = common_id  # type: ignore
 

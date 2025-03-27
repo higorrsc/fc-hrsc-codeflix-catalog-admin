@@ -1,6 +1,7 @@
-import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import StrEnum
+
+from src.core._shared.domain.entity import AbstractEntity
 
 
 class CastMemberType(StrEnum):
@@ -13,14 +14,13 @@ class CastMemberType(StrEnum):
 
 
 @dataclass()
-class CastMember:
+class CastMember(AbstractEntity):
     """
     Represents a cast member of a movie.
     """
 
     name: str
     type: CastMemberType
-    id: uuid.UUID = field(default_factory=uuid.uuid4)
 
     def __post_init__(self):
         """
@@ -30,7 +30,7 @@ class CastMember:
         It validates the cast member's name and type.
         """
 
-        self.__validate()
+        self.validate()
 
     def __str__(self) -> str:
         """
@@ -72,7 +72,7 @@ class CastMember:
             self.id == value.id and self.name == value.name and self.type == value.type
         )
 
-    def __validate(self):
+    def validate(self):
         """
         Validate the cast member.
 
@@ -82,13 +82,18 @@ class CastMember:
         """
 
         if not self.name:
-            raise ValueError("Name cannot be empty")
+            self.notification.add_error("Name cannot be empty")
 
         if len(self.name) > 255:
-            raise ValueError("Name must have less then 256 characters")
+            self.notification.add_error("Name must have less then 256 characters")
 
         if self.type not in CastMemberType:
-            raise ValueError("Type must be a valid CastMemberType: ACTOR or DIRECTOR")
+            self.notification.add_error(
+                "Type must be a valid CastMemberType: ACTOR or DIRECTOR"
+            )
+
+        if self.notification.has_errors:
+            raise ValueError(self.notification.messages)
 
     def update_cast_member(self, name: str, type: CastMemberType):
         """
@@ -105,4 +110,4 @@ class CastMember:
 
         self.name = name
         self.type = type
-        self.__validate()
+        self.validate()
