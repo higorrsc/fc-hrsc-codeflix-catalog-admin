@@ -89,6 +89,9 @@ def director_cast_member() -> CastMember:
 
 @pytest.mark.django_db
 class TestSave:
+    """
+    Test class for saving Video instances to the database using DjangoORMVideoRepository.
+    """
 
     def test_save_video_in_database(self):
         """
@@ -209,6 +212,9 @@ class TestSave:
 
 @pytest.mark.django_db
 class TestGetById:
+    """
+    Tests retrieving a Video from the database using DjangoORMVideoRepository.
+    """
 
     def test_retrieves_video_from_database(self):
         """
@@ -318,6 +324,9 @@ class TestGetById:
 
 @pytest.mark.django_db
 class TestDelete:
+    """
+    Tests the delete method of the DjangoORMVideoRepository class.
+    """
 
     def test_deletes_video_from_database(self):
         """
@@ -419,6 +428,9 @@ class TestDelete:
 
 @pytest.mark.django_db
 class TestUpdate:
+    """
+    Tests that a Video instance can be updated in the database using DjangoORMVideoRepository.
+    """
 
     def test_updates_video_in_database(self):
         """
@@ -454,7 +466,7 @@ class TestUpdate:
         updated_video_from_db = repository.get_by_id(video.id)
         assert updated_video_from_db.title == "Avatar (Updated)"  # type: ignore
 
-    def test_save_video_with_related_data_in_database(
+    def test_update_video_with_related_data_in_database(
         self,
         movie_category: Category,
         action_genre: Genre,
