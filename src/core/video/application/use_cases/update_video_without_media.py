@@ -42,17 +42,6 @@ class UpdateVideoWithoutMedia:
         Output data for the update video without media use case.
         """
 
-        id: uuid.UUID
-        title: str
-        description: str
-        launch_year: int
-        duration: Decimal
-        rating: Rating
-        published: bool
-        categories: set[uuid.UUID]
-        genres: set[uuid.UUID]
-        cast_members: set[uuid.UUID]
-
     def __init__(
         self,
         video_repository: VideoRepository,
@@ -76,7 +65,7 @@ class UpdateVideoWithoutMedia:
         self.genre_repository = genre_repository
         self.cast_member_repository = cast_member_repository
 
-    def execute(self, input: Input) -> Output:
+    def execute(self, input: Input) -> None:
         """
         Execute the update video without media use case.
 
@@ -135,15 +124,4 @@ class UpdateVideoWithoutMedia:
 
         self.video_repository.update(video)
 
-        return self.Output(
-            id=video.id,
-            title=video.title,
-            description=video.description,
-            launch_year=video.launch_year,
-            duration=video.duration,
-            rating=video.rating,
-            published=video.published,
-            categories=video.categories,
-            genres=video.genres,
-            cast_members=video.cast_members,
-        )
+        return None
