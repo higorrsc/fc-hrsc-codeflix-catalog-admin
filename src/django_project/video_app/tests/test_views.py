@@ -702,4 +702,4 @@ class TestDeleteAPI:
         response = APIClient().delete(url)
 
         assert response.status_code == HTTP_404_NOT_FOUND  # type: ignore
-        assert "Video not found" in response.data["detail"]  # type: ignore
+        assert "Video not found" in response.data["error"]  # type: ignore
