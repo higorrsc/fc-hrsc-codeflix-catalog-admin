@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from src.core.video.domain.value_objects import MediaStatus as MediaStatusType
 from src.core.video.domain.value_objects import Rating as RatingType
-from src.django_project.serializers import SetField
+from src.django_project.serializers import ListResponseSerializer, SetField
 
 
 class MediaStatusTypeField(serializers.ChoiceField):
@@ -95,7 +95,7 @@ class RatingTypeField(serializers.ChoiceField):
         return str(super().to_representation(value))
 
 
-class CreateVideoWithoutMediaRequestSerializer(serializers.Serializer):
+class VideoWithoutMediaRequestSerializer(serializers.Serializer):
     """
     Serializer for video request
     """
@@ -105,6 +105,55 @@ class CreateVideoWithoutMediaRequestSerializer(serializers.Serializer):
     launch_year = serializers.IntegerField()
     duration = serializers.DecimalField(max_digits=5, decimal_places=2)
     published = serializers.BooleanField(default=False)
+    rating = RatingTypeField()
+
+    categories = SetField(child=serializers.UUIDField())
+    genres = SetField(child=serializers.UUIDField())
+    cast_members = SetField(child=serializers.UUIDField())
+
+
+class VideoWithoutMediaResponseSerializer(serializers.Serializer):
+    """
+    Serializer for video response
+    """
+
+    id = serializers.UUIDField()
+    title = serializers.CharField(max_length=255)
+    description = serializers.CharField()
+    launch_year = serializers.IntegerField()
+    duration = serializers.DecimalField(max_digits=5, decimal_places=2)
+    published = serializers.BooleanField()
+    rating = RatingTypeField()
+
+    categories = SetField(child=serializers.UUIDField())
+    genres = SetField(child=serializers.UUIDField())
+    cast_members = SetField(child=serializers.UUIDField())
+
+
+class ListVideoWithoutMediaResponseSerializer(ListResponseSerializer):
+    """
+    Serializer for list video response
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            child_serializer=VideoWithoutMediaResponseSerializer,
+            *args,
+            **kwargs,
+        )
+
+
+class UpdateVideoWithoutMediaRequestSerializer(serializers.Serializer):
+    """
+    Serializer for update video request
+    """
+
+    id = serializers.UUIDField()
+    title = serializers.CharField(max_length=255)
+    description = serializers.CharField()
+    launch_year = serializers.IntegerField()
+    duration = serializers.DecimalField(max_digits=5, decimal_places=2)
+    published = serializers.BooleanField()
     rating = RatingTypeField()
 
     categories = SetField(child=serializers.UUIDField())

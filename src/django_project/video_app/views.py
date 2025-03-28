@@ -6,10 +6,13 @@ from rest_framework.response import Response
 from rest_framework.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
+    HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
     HTTP_404_NOT_FOUND,
 )
 
+from src.core._shared.application.use_cases.delete import DeleteRequest
+from src.core._shared.application.use_cases.list import ListRequest, ListResponse
 from src.core._shared.infrastructure.storage.local_storage import LocalStorage
 from src.core.video.application.exceptions import (
     InvalidVideo,
@@ -19,14 +22,28 @@ from src.core.video.application.exceptions import (
 from src.core.video.application.use_cases.create_video_without_media import (
     CreateVideoWithoutMedia,
 )
+from src.core.video.application.use_cases.delete_video_without_media import (
+    DeleteVideoWithoutMedia,
+)
+from src.core.video.application.use_cases.list_video_without_media import (
+    ListVideoWithoutMedia,
+)
+from src.core.video.application.use_cases.update_video_without_media import (
+    UpdateVideoWithoutMedia,
+)
 from src.core.video.application.use_cases.upload_video import UploadVideo
 from src.django_project.cast_member_app.repository import DjangoORMCastMemberRepository
 from src.django_project.category_app.repository import DjangoORMCategoryRepository
 from src.django_project.genre_app.repository import DjangoORMGenreRepository
-from src.django_project.serializers import CreateResponseSerializer
+from src.django_project.serializers import (
+    CreateResponseSerializer,
+    DeleteRequestSerializer,
+)
 from src.django_project.video_app.repository import DjangoORMVideoRepository
 from src.django_project.video_app.serializers import (
-    CreateVideoWithoutMediaRequestSerializer,
+    ListVideoWithoutMediaResponseSerializer,
+    UpdateVideoWithoutMediaRequestSerializer,
+    VideoWithoutMediaRequestSerializer,
 )
 
 
@@ -47,7 +64,25 @@ class VideoViewSet(viewsets.ViewSet):
             Response: A response object containing a list of video data.
         """
 
-        raise NotImplementedError
+        order_by = request.query_params.get("order_by", "title")
+        reverse_order = request.query_params.get("sort", "asc")
+        current_page = request.query_params.get("current_page", 1)
+
+        use_case = ListVideoWithoutMedia(repository=DjangoORMVideoRepository())
+        res: ListResponse = use_case.execute(
+            ListRequest(
+                order_by=order_by,
+                sort=reverse_order,
+                current_page=int(current_page),
+            )
+        )  # type: ignore
+
+        serializer = ListVideoWithoutMediaResponseSerializer(instance=res)
+
+        return Response(
+            data=serializer.data,
+            status=HTTP_200_OK,
+        )
 
     def retrieve(self, request: Request, pk=None) -> Response:
         """
@@ -79,7 +114,7 @@ class VideoViewSet(viewsets.ViewSet):
                 are not found.
         """
 
-        serializer = CreateVideoWithoutMediaRequestSerializer(data=request.data)
+        serializer = VideoWithoutMediaRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         req = CreateVideoWithoutMedia.Input(**serializer.validated_data)  # type: ignore
@@ -115,7 +150,38 @@ class VideoViewSet(viewsets.ViewSet):
             Response: A response object containing the updated video data.
         """
 
-        raise NotImplementedError
+        serializer = UpdateVideoWithoutMediaRequestSerializer(
+            data={
+                **request.data,  # type: ignore
+                "id": pk,
+            }
+        )
+        serializer.is_valid(raise_exception=True)
+
+        req = UpdateVideoWithoutMedia.Input(**serializer.validated_data)  # type: ignore
+        use_case = UpdateVideoWithoutMedia(
+            DjangoORMVideoRepository(),
+            DjangoORMCategoryRepository(),
+            DjangoORMGenreRepository(),
+            DjangoORMCastMemberRepository(),
+        )
+
+        try:
+            use_case.execute(req)
+        except VideoNotFound:
+            return Response(
+                data={"error": "Video not found"},
+                status=HTTP_404_NOT_FOUND,
+            )
+        except RelatedEntitiesNotFound as err:
+            return Response(
+                data={"error": str(err)},
+                status=HTTP_404_NOT_FOUND,
+            )
+
+        return Response(
+            status=HTTP_204_NO_CONTENT,
+        )
 
     def destroy(self, request: Request, pk=None) -> Response:
         """
@@ -129,7 +195,22 @@ class VideoViewSet(viewsets.ViewSet):
             Response: A response object containing the deleted video data.
         """
 
-        raise NotImplementedError
+        serializer = DeleteRequestSerializer(data={"id": pk})
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            req = DeleteRequest(**serializer.validated_data)  # type: ignore
+            use_case = DeleteVideoWithoutMedia(DjangoORMVideoRepository())
+            use_case.execute(req)
+        except VideoNotFound:
+            return Response(
+                data={"error": "Video not found"},
+                status=HTTP_404_NOT_FOUND,
+            )
+
+        return Response(
+            status=HTTP_204_NO_CONTENT,
+        )
 
     def partial_update(self, request: Request, pk=None) -> Response:
         """
