@@ -23,7 +23,7 @@ class MessageBus(AbstractMessageBus):
         self.handlers: dict[Type[Event], List[AbstractHandler]] = {
             AudioVideoMediaUpdatedIntegrationEvent: [
                 PublishAudioVideoMediaUpdatedHandler(
-                    event_dispatcher=RabbitMQDispatcher(queue_name="videos.new")
+                    event_dispatcher=RabbitMQDispatcher(queue="videos.new")
                 )
             ],
         }
