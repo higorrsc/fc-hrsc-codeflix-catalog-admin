@@ -15,6 +15,19 @@ class MediaStatus(StrEnum):
 
 
 @unique
+class MediaType(StrEnum):
+    """
+    Enumeration representing the type of a media.
+    """
+
+    BANNER = "BANNER"
+    THUMBNAIL = "THUMBNAIL"
+    THUMBNAIL_HALF = "THUMBNAIL_HALF"
+    TRAILER = "TRAILER"
+    VIDEO = "VIDEO"
+
+
+@unique
 class Rating(StrEnum):
     """
     Enumeration representing the rating of a media.
@@ -50,4 +63,5 @@ class AudioVideoMedia:
     raw_location: str
     encoded_location: str
     status: MediaStatus
+    media_type: MediaType
     check_sum: str = ""

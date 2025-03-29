@@ -4,7 +4,13 @@ from decimal import Decimal
 from typing import Optional
 
 from src.core._shared.domain.entity import AbstractEntity
-from src.core.video.domain.value_objects import AudioVideoMedia, ImageMedia, Rating
+from src.core.video.domain.events.event import AudioVideoMediaUpdated
+from src.core.video.domain.value_objects import (
+    AudioVideoMedia,
+    ImageMedia,
+    MediaType,
+    Rating,
+)
 
 
 @dataclass(slots=True, kw_only=True)
@@ -209,3 +215,10 @@ class Video(AbstractEntity):
 
         self.video = video
         self.validate()
+        self.dispatch(
+            AudioVideoMediaUpdated(
+                aggregate_id=self.id,
+                file_path=video.raw_location,
+                media_type=MediaType.VIDEO,
+            )
+        )

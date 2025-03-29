@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from src.core._shared.domain.entity import AbstractEntity
 
 
-@dataclass
+@dataclass(eq=False)
 class Genre(AbstractEntity):
     """
     Represents a genre of movies.

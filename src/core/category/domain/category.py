@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from src.core._shared.domain.entity import AbstractEntity
 
 
-@dataclass
+@dataclass(eq=False)
 class Category(AbstractEntity):
     """
     Represents a category of movies.

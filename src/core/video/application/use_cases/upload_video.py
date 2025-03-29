@@ -2,11 +2,15 @@ import uuid
 from dataclasses import dataclass
 from pathlib import Path
 
+from src.core._shared.events.abstract_message_bus import AbstractMessageBus
 from src.core._shared.infrastructure.storage.abstract_storage_service import (
     AbstractStorageService,
 )
+from src.core.video.application.events.integration_events import (
+    AudioVideoMediaUpdatedIntegrationEvent,
+)
 from src.core.video.application.exceptions import VideoNotFound
-from src.core.video.domain.value_objects import AudioVideoMedia, MediaStatus
+from src.core.video.domain.value_objects import AudioVideoMedia, MediaStatus, MediaType
 from src.core.video.domain.video_repository import VideoRepository
 
 
@@ -30,27 +34,36 @@ class UploadVideo:
         self,
         video_repository: VideoRepository,
         storage_service: AbstractStorageService,
+        message_bus: AbstractMessageBus,
     ) -> None:
         """
         Initialize the UploadVideo use case.
 
         Args:
             video_repository (VideoRepository): The repository to manage video entities.
+            storage_service (AbstractStorageService): The storage service to store the
+                video media.
+            message_bus (AbstractMessageBus): The message bus to publish integration events.
         """
 
         self.video_repository = video_repository
         self.storage_service = storage_service
+        self.message_bus = message_bus
 
     def execute(self, input: Input) -> None:
         """
-        Upload a video to the storage service and update the video entity.
+        Execute the UploadVideo use case.
+
+        This method uploads video media to a storage service and updates
+        the corresponding video entity in the repository. An integration
+        event is published after the video is updated.
 
         Args:
-            input (Input): The input data containing the video ID, file name, content,
-                and content type.
+            input (Input): The input data containing the video ID, file name,
+                        content, and content type.
 
         Raises:
-            VideoNotFound: If the video with the given ID does not exist
+            VideoNotFound: If the video with the given ID does not exist.
         """
 
         video = self.video_repository.get_by_id(input.video_id)
@@ -69,8 +82,18 @@ class UploadVideo:
             raw_location=str(file_path),
             encoded_location="",
             status=MediaStatus.PENDING,
+            media_type=MediaType.VIDEO,
         )
 
         video.update_video(audio_video_media)
 
         self.video_repository.update(video)
+
+        self.message_bus.handle(
+            [
+                AudioVideoMediaUpdatedIntegrationEvent(
+                    resource_id=f"{video.id}.{MediaType.VIDEO}",
+                    file_path=str(file_path),
+                )
+            ]
+        )

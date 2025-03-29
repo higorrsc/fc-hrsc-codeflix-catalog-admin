@@ -4,12 +4,21 @@ from unittest.mock import create_autospec
 
 import pytest
 
+from src.core._shared.events.abstract_message_bus import AbstractMessageBus
 from src.core._shared.infrastructure.storage.abstract_storage_service import (
     AbstractStorageService,
 )
+from src.core.video.application.events.integration_events import (
+    AudioVideoMediaUpdatedIntegrationEvent,
+)
 from src.core.video.application.exceptions import VideoNotFound
 from src.core.video.application.use_cases.upload_video import UploadVideo
-from src.core.video.domain.value_objects import AudioVideoMedia, MediaStatus, Rating
+from src.core.video.domain.value_objects import (
+    AudioVideoMedia,
+    MediaStatus,
+    MediaType,
+    Rating,
+)
 from src.core.video.domain.video import Video
 from src.core.video.infra.in_memory_video_repository import InMemoryVideoRepository
 
@@ -47,10 +56,12 @@ class TestUploadVideo:
         assert video_repository.videos[0] == video
 
         mock_storage = create_autospec(AbstractStorageService)
+        mock_message_bus = create_autospec(AbstractMessageBus)
 
         use_case = UploadVideo(
             video_repository,
             mock_storage,
+            mock_message_bus,
         )
         use_case.execute(
             UploadVideo.Input(
@@ -73,6 +84,16 @@ class TestUploadVideo:
             raw_location=str(Path("videos") / str(video.id) / "avatar.mp4"),
             encoded_location="",
             status=MediaStatus.PENDING,
+            media_type=MediaType.VIDEO,
+        )
+        assert video_repository.videos[0] == video
+        mock_message_bus.handle.assert_called_once_with(
+            [
+                AudioVideoMediaUpdatedIntegrationEvent(
+                    resource_id=f"{video.id}.{MediaType.VIDEO}",
+                    file_path=str(Path("videos") / str(video.id) / "avatar.mp4"),
+                )
+            ]
         )
 
     def test_when_video_is_not_found(self):
@@ -84,10 +105,12 @@ class TestUploadVideo:
 
         video_repository = InMemoryVideoRepository([])
         mock_storage = create_autospec(AbstractStorageService)
+        mock_message_bus = create_autospec(AbstractMessageBus)
 
         use_case = UploadVideo(
             video_repository,
             mock_storage,
+            mock_message_bus,
         )
         with pytest.raises(VideoNotFound) as exc_info:
             use_case.execute(

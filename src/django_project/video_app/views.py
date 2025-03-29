@@ -13,6 +13,7 @@ from rest_framework.status import (
 
 from src.core._shared.application.use_cases.delete import DeleteRequest
 from src.core._shared.application.use_cases.list import ListRequest, ListResponse
+from src.core._shared.events.message_bus import MessageBus
 from src.core._shared.infrastructure.storage.local_storage import LocalStorage
 from src.core.video.application.exceptions import (
     InvalidVideo,
@@ -233,6 +234,7 @@ class VideoViewSet(viewsets.ViewSet):
         use_case = UploadVideo(
             DjangoORMVideoRepository(),
             LocalStorage(),
+            MessageBus(),
         )
 
         try:

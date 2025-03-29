@@ -2,10 +2,12 @@ import uuid
 
 import pytest
 
+from src.core.video.domain.events.event import AudioVideoMediaUpdated
 from src.core.video.domain.value_objects import (
     AudioVideoMedia,
     ImageMedia,
     MediaStatus,
+    MediaType,
     Rating,
 )
 from src.core.video.domain.video import Video
@@ -71,6 +73,7 @@ def new_audio_video_media() -> AudioVideoMedia:
         raw_location="new/path/to/raw/file",
         encoded_location="new/path/to/encoded/file",
         status=MediaStatus.ERROR,
+        media_type=MediaType.VIDEO,
     )
 
 
@@ -161,6 +164,7 @@ class TestVideoEntity:
                 raw_location="path/to/trailer_raw",
                 encoded_location="path/to/trailer_encoded",
                 status=MediaStatus.PENDING,
+                media_type=MediaType.TRAILER,
             ),
         )
         assert video.notification.has_errors is False
@@ -374,3 +378,24 @@ class TestVideoEntity:
         assert video_avatar.video.name == new_audio_video_media.name  # type: ignore
         assert video_avatar.video.status == new_audio_video_media.status  # type: ignore
         assert video_avatar.video.status == MediaStatus.ERROR  # type: ignore
+
+
+class TestPublish:
+    pass
+
+
+class TestUpdateVideoMedia:
+
+    def test_update_video_and_dispatch_event(
+        self, video_avatar: Video, new_audio_video_media: AudioVideoMedia
+    ) -> None:
+        video_avatar.update_video(new_audio_video_media)
+        assert video_avatar.video == new_audio_video_media
+
+        assert video_avatar.events == [
+            AudioVideoMediaUpdated(
+                aggregate_id=video_avatar.id,
+                file_path=new_audio_video_media.raw_location,
+                media_type=MediaType.VIDEO,
+            )
+        ]
