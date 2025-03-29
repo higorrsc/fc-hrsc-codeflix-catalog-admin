@@ -8,6 +8,7 @@ from src.core.video.domain.events.event import AudioVideoMediaUpdated
 from src.core.video.domain.value_objects import (
     AudioVideoMedia,
     ImageMedia,
+    MediaStatus,
     MediaType,
     Rating,
 )
@@ -220,5 +221,54 @@ class Video(AbstractEntity):
                 aggregate_id=self.id,
                 file_path=video.raw_location,
                 media_type=MediaType.VIDEO,
-            )
+            )  # type: ignore
         )
+
+    def publish(self) -> None:
+        """
+        Publish the video if the video media is available and fully processed.
+
+        This method sets the video as published if it contains media and the media
+        status is COMPLETED. Otherwise, it adds errors to the notification.
+
+        Raises:
+            ValueError: If there are errors in the notification after validation.
+        """
+
+        if not self.video:
+            self.notification.add_error("Video media is required to publish the video")
+        elif self.video.status != MediaStatus.COMPLETED:
+            self.notification.add_error("Video must be fully processed to be published")
+
+        self.published = True
+        self.validate()
+
+    def process(self, status: MediaStatus, encoded_location: str) -> None:
+        """
+        Process the video media.
+
+        Args:
+            status (MediaStatus): The status of the processed video media.
+            encoded_location (str): The location of the processed video media.
+
+        If the status is COMPLETED, the video is updated with the encoded location.
+        """
+
+        if status == MediaStatus.COMPLETED:
+            self.video = AudioVideoMedia(
+                name=self.video.name,  # type: ignore
+                raw_location=self.video.raw_location,  # type: ignore
+                encoded_location=encoded_location,
+                status=MediaStatus.COMPLETED,
+                media_type=MediaType.VIDEO,
+            )
+            self.publish()
+        else:
+            self.video = AudioVideoMedia(
+                name=self.video.name,  # type: ignore
+                raw_location=self.video.raw_location,  # type: ignore
+                encoded_location="",
+                status=MediaStatus.ERROR,
+                media_type=MediaType.VIDEO,
+            )
+        self.validate()

@@ -14,3 +14,9 @@ class VideoNotFound(Exception):
     """
     Exception raised when a video is not found.
     """
+
+
+class MediaNotFound(Exception):
+    """
+    Exception raised when a media is not found.
+    """
