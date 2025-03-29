@@ -2,7 +2,7 @@ import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
-from src.core._shared.notification import Notification
+from src.core._shared.domain.notification import Notification
 
 
 @dataclass(kw_only=True)

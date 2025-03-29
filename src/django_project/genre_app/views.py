@@ -24,11 +24,13 @@ from src.django_project.category_app.repository import DjangoORMCategoryReposito
 from src.django_project.genre_app.repository import DjangoORMGenreRepository
 from src.django_project.genre_app.serializers import (
     CreateGenreRequestSerializer,
-    CreateGenreResponseSerializer,
     ListGenreResponseSerializer,
     UpdateGenreRequestSerializer,
 )
-from src.django_project.serializers import DeleteRequestSerializer
+from src.django_project.serializers import (
+    CreateResponseSerializer,
+    DeleteRequestSerializer,
+)
 
 
 # Create your views here.
@@ -96,7 +98,7 @@ class GenreViewSet(viewsets.ViewSet):
             )
 
         return Response(
-            data=CreateGenreResponseSerializer(instance=output).data,
+            data=CreateResponseSerializer(instance=output).data,
             status=HTTP_201_CREATED,
         )
 

@@ -1,7 +1,7 @@
 import uuid
 from dataclasses import dataclass, field
 
-from src.core._shared.entity import AbstractEntity
+from src.core._shared.domain.entity import AbstractEntity
 
 
 @dataclass
@@ -53,11 +53,9 @@ class Genre(AbstractEntity):
         """
 
         if not self.name:
-            # raise ValueError("Name cannot be empty")
             self.notification.add_error("Name cannot be empty")
 
         if len(self.name) > 255:
-            # raise ValueError("Name must have less then 256 characters")
             self.notification.add_error("Name must have less then 256 characters")
 
         if self.notification.has_errors:

@@ -10,8 +10,8 @@ from src.core.category.domain.category_repository import CategoryRepository
 from src.core.genre.domain.genre import Genre
 from src.core.genre.domain.genre_repository import GenreRepository
 from src.core.video.application.exceptions import InvalidVideo, RelatedEntitiesNotFound
-from src.core.video.application.use_cases.create_video_without_media import (
-    CreateVideoWithoutMedia,
+from src.core.video.application.use_cases.update_video_without_media import (
+    UpdateVideoWithoutMedia,
 )
 from src.core.video.domain.value_objects import Rating
 from src.core.video.domain.video import Video
@@ -94,32 +94,6 @@ def mock_genre_repository(
 
 
 @pytest.fixture
-def avatar_video() -> Video:
-    """
-    Fixture for a Video instance representing the movie Avatar.
-
-    Returns:
-        Video: A Video object with title "Avatar", description of the movie
-        plot, duration of 162 minutes, launch year 2009, unpublished status,
-        rating for age 12 and above, no categories, four genres,
-        and twenty cast members.
-    """
-
-    return Video(
-        title="Avatar",
-        description="""A paraplegic Marine dispatched to the moon Pandora on a
-        unique mission becomes torn between following his orders and protecting
-        the world he feels is his home.""",
-        duration=162.0,  # type: ignore
-        launch_year=2009,
-        rating=Rating.AGE_12,
-        categories=set(),
-        genres=set(),
-        cast_members=set(),
-    )
-
-
-@pytest.fixture
 def actor_cast_member() -> CastMember:
     """
     Fixture for a CastMember instance representing Sam Worthington.
@@ -167,6 +141,32 @@ def mock_cast_member_repository(
 
 
 @pytest.fixture
+def avatar_video() -> Video:
+    """
+    Fixture for a Video instance representing the movie Avatar.
+
+    Returns:
+        Video: A Video object with title "Avatar", description of the movie
+        plot, duration of 162 minutes, launch year 2009, unpublished status,
+        rating for age 12 and above, no categories, four genres,
+        and twenty cast members.
+    """
+
+    return Video(
+        title="Avatar",
+        description="""A paraplegic Marine dispatched to the moon Pandora on a
+        unique mission becomes torn between following his orders and protecting
+        the world he feels is his home.""",
+        duration=162.0,  # type: ignore
+        launch_year=2009,
+        rating=Rating.AGE_12,
+        categories=set(),
+        genres=set(),
+        cast_members=set(),
+    )
+
+
+@pytest.fixture
 def mock_video_repository(avatar_video: Video) -> VideoRepository:
     """
     Fixture for a mock VideoRepository instance.
@@ -176,76 +176,91 @@ def mock_video_repository(avatar_video: Video) -> VideoRepository:
     """
 
     repository = create_autospec(VideoRepository)
-    repository.list.return_value = [avatar_video]
+    repository.get_by_id.return_value = avatar_video
     return repository
 
 
-class TesteCreateVideoWithoutMedia:
+class TesteUpdateVideoWithoutMedia:
     """
-    Test suite for the CreateVideoWithoutMedia use case.
+    Test suite for the UpdateVideoWithoutMedia use case.
     """
 
-    def test_create_video_with_valid_data(
+    def test_update_video_with_valid_data(
         self,
         mock_video_repository: VideoRepository,
         mock_category_repository: CategoryRepository,
         category_movie: Category,
         mock_genre_repository: GenreRepository,
-        action_genre: Genre,
         adventure_genre: Genre,
         mock_cast_member_repository: CastMemberRepository,
         actor_cast_member: CastMember,
-        director_cast_member: CastMember,
+        avatar_video: Video,
     ):
         """
-        When creating a video with valid data, it returns a VideoOutput and saves the Video
-        in the repository.
+        When updating a video with valid data, it returns a VideoOutput and updates
+        the Video in the repository.
 
-        This test verifies that the `create_video_without_media` use case returns a VideoOutput
-        and saves the Video in the provided repository when given valid data.
+        This test verifies that the `update_video_without_media` use case returns a
+        VideoOutput and updates the Video in the provided repository when given
+        valid data.
         """
 
-        use_case = CreateVideoWithoutMedia(
+        use_case = UpdateVideoWithoutMedia(
             video_repository=mock_video_repository,
             category_repository=mock_category_repository,
             genre_repository=mock_genre_repository,
             cast_member_repository=mock_cast_member_repository,
         )
 
+        mock_video_repository.get_by_id.return_value = avatar_video  # type: ignore
+
         result = use_case.execute(
-            CreateVideoWithoutMedia.Input(
-                title="Avatar",
-                description="""A paraplegic Marine dispatched to the moon Pandora on a
-                unique mission becomes torn between following his orders and protecting
-                the world he feels is his home.""",
+            UpdateVideoWithoutMedia.Input(
+                id=avatar_video.id,
+                title="Avatar 2",
+                description="""A paraplegic Marine dispatched...""",
                 launch_year=2009,
-                duration=162.0,  # type: ignore
-                rating=Rating.AGE_12,
+                duration=162.05,  # type: ignore
+                published=True,
+                rating=Rating.AGE_14,
                 categories={category_movie.id},
-                genres={action_genre.id, adventure_genre.id},
-                cast_members={actor_cast_member.id, director_cast_member.id},
+                genres={adventure_genre.id},
+                cast_members={actor_cast_member.id},
             )
         )
-        assert isinstance(result.id, uuid.UUID)
-        assert mock_video_repository.save.call_count == 1  # type: ignore
 
-    def test_create_video_without_valid_data_name_empty(
+        assert mock_video_repository.update.call_count == 1  # type: ignore
+        assert result == UpdateVideoWithoutMedia.Output(
+            id=avatar_video.id,
+            title="Avatar 2",
+            description="""A paraplegic Marine dispatched...""",
+            launch_year=2009,
+            duration=162.05,  # type: ignore
+            rating=Rating.AGE_14,
+            published=True,
+            categories={category_movie.id},
+            genres={adventure_genre.id},
+            cast_members={actor_cast_member.id},
+        )
+
+    def test_update_video_without_valid_data_name_empty(
         self,
         mock_video_repository: VideoRepository,
         mock_category_repository: CategoryRepository,
         mock_genre_repository: GenreRepository,
         mock_cast_member_repository: CastMemberRepository,
+        avatar_video: Video,
     ):
         """
-        Tests that the CreateVideoWithoutMedia use case raises an InvalidVideo
+        Tests that the UpdateVideoWithoutMedia use case raises an InvalidVideo
         exception when an empty title is provided.
 
-        This test verifies that the `create_video_without_media` use case raises an
+        This test verifies that the `update_video_without_media` use case raises an
         `InvalidVideo` exception when the video title is an empty string, ensuring
         that the title field is validated correctly.
         """
 
-        use_case = CreateVideoWithoutMedia(
+        use_case = UpdateVideoWithoutMedia(
             video_repository=mock_video_repository,
             category_repository=mock_category_repository,
             genre_repository=mock_genre_repository,
@@ -254,7 +269,8 @@ class TesteCreateVideoWithoutMedia:
 
         with pytest.raises(InvalidVideo) as exc_info:
             use_case.execute(
-                CreateVideoWithoutMedia.Input(
+                UpdateVideoWithoutMedia.Input(
+                    id=avatar_video.id,
                     title="",
                     description="""A paraplegic Marine dispatched to the moon Pandora on a
                     unique mission becomes torn between following his orders and protecting
@@ -262,6 +278,7 @@ class TesteCreateVideoWithoutMedia:
                     launch_year=2009,
                     duration=162.0,  # type: ignore
                     rating=Rating.AGE_12,
+                    published=True,
                     categories=set(),
                     genres=set(),
                     cast_members=set(),
@@ -270,22 +287,24 @@ class TesteCreateVideoWithoutMedia:
 
         assert "Title cannot be empty" in str(exc_info.value)
 
-    def test_create_video_without_valid_data_name_longer_than_255_characters(
+    def test_update_video_without_valid_data_name_longer_than_255_characters(
         self,
         mock_video_repository: VideoRepository,
         mock_category_repository: CategoryRepository,
         mock_genre_repository: GenreRepository,
         mock_cast_member_repository: CastMemberRepository,
+        avatar_video: Video,
     ):
         """
-        When creating a video with valid data and a title longer than 255 characters,
-        it raises a InvalidVideo exception.
+        Tests that the UpdateVideoWithoutMedia use case raises an InvalidVideo
+        exception when a title longer than 255 characters is provided.
 
-        This test verifies that the `create_video_without_media` use case raises a
-        `InvalidVideo` exception when the given title is longer than 255 characters.
+        This test verifies that the `update_video_without_media` use case raises an
+        `InvalidVideo` exception when the video title is a string longer than 255
+        characters, ensuring that the title field is validated correctly.
         """
 
-        use_case = CreateVideoWithoutMedia(
+        use_case = UpdateVideoWithoutMedia(
             video_repository=mock_video_repository,
             category_repository=mock_category_repository,
             genre_repository=mock_genre_repository,
@@ -294,7 +313,8 @@ class TesteCreateVideoWithoutMedia:
 
         with pytest.raises(InvalidVideo) as exc_info:
             use_case.execute(
-                CreateVideoWithoutMedia.Input(
+                UpdateVideoWithoutMedia.Input(
+                    id=avatar_video.id,
                     title="A" * 256,
                     description="""A paraplegic Marine dispatched to the moon Pandora on a
                     unique mission becomes torn between following his orders and protecting
@@ -302,6 +322,7 @@ class TesteCreateVideoWithoutMedia:
                     launch_year=2009,
                     duration=162.0,  # type: ignore
                     rating=Rating.AGE_12,
+                    published=True,
                     categories=set(),
                     genres=set(),
                     cast_members=set(),
@@ -310,23 +331,24 @@ class TesteCreateVideoWithoutMedia:
 
         assert "Title must have less than 256 characters" in str(exc_info.value)
 
-    def test_create_video_without_valid_data_invalid_category_id(
+    def test_update_video_without_valid_data_invalid_category_id(
         self,
         mock_video_repository: VideoRepository,
         mock_category_repository: CategoryRepository,
         mock_genre_repository: GenreRepository,
         mock_cast_member_repository: CastMemberRepository,
+        avatar_video: Video,
     ):
         """
-        When creating a video without valid data and providing an invalid category ID,
-        it raises a RelatedEntitiesNotFound exception.
+        Tests that the UpdateVideoWithoutMedia use case raises a RelatedEntitiesNotFound
+        exception when an invalid category ID is provided.
 
-        This test verifies that the `create_video_without_media` use case raises a
+        This test verifies that the `update_video_without_media` use case raises a
         `RelatedEntitiesNotFound` exception when the given category ID does not exist
         in the repository.
         """
 
-        use_case = CreateVideoWithoutMedia(
+        use_case = UpdateVideoWithoutMedia(
             video_repository=mock_video_repository,
             category_repository=mock_category_repository,
             genre_repository=mock_genre_repository,
@@ -337,7 +359,8 @@ class TesteCreateVideoWithoutMedia:
 
         with pytest.raises(RelatedEntitiesNotFound) as exc_info:
             use_case.execute(
-                CreateVideoWithoutMedia.Input(
+                UpdateVideoWithoutMedia.Input(
+                    id=avatar_video.id,
                     title="Avatar",
                     description="""A paraplegic Marine dispatched to the moon Pandora on a
                     unique mission becomes torn between following his orders and protecting
@@ -345,6 +368,7 @@ class TesteCreateVideoWithoutMedia:
                     launch_year=2009,
                     duration=162.0,  # type: ignore
                     rating=Rating.AGE_12,
+                    published=True,
                     categories={invalid_id},
                     genres=set(),
                     cast_members=set(),
@@ -353,12 +377,13 @@ class TesteCreateVideoWithoutMedia:
 
         assert "Categories with provided IDs not found:" in str(exc_info.value)
 
-    def test_create_video_without_valid_data_invalid_genre_id(
+    def test_update_video_without_valid_data_invalid_genre_id(
         self,
         mock_video_repository: VideoRepository,
         mock_category_repository: CategoryRepository,
         mock_genre_repository: GenreRepository,
         mock_cast_member_repository: CastMemberRepository,
+        avatar_video: Video,
     ):
         """
         When creating a video without valid data and providing an invalid genre ID,
@@ -369,7 +394,7 @@ class TesteCreateVideoWithoutMedia:
         in the repository.
         """
 
-        use_case = CreateVideoWithoutMedia(
+        use_case = UpdateVideoWithoutMedia(
             video_repository=mock_video_repository,
             category_repository=mock_category_repository,
             genre_repository=mock_genre_repository,
@@ -380,7 +405,8 @@ class TesteCreateVideoWithoutMedia:
 
         with pytest.raises(RelatedEntitiesNotFound) as exc_info:
             use_case.execute(
-                CreateVideoWithoutMedia.Input(
+                UpdateVideoWithoutMedia.Input(
+                    id=avatar_video.id,
                     title="Avatar",
                     description="""A paraplegic Marine dispatched to the moon Pandora on a
                     unique mission becomes torn between following his orders and protecting
@@ -388,6 +414,7 @@ class TesteCreateVideoWithoutMedia:
                     launch_year=2009,
                     duration=162.0,  # type: ignore
                     rating=Rating.AGE_12,
+                    published=True,
                     categories=set(),
                     genres={invalid_id},
                     cast_members=set(),
@@ -396,23 +423,24 @@ class TesteCreateVideoWithoutMedia:
 
         assert "Genres with provided IDs not found:" in str(exc_info.value)
 
-    def test_create_video_without_valid_data_invalid_cast_member_id(
+    def test_update_video_without_valid_data_invalid_cast_member_id(
         self,
         mock_video_repository: VideoRepository,
         mock_category_repository: CategoryRepository,
         mock_genre_repository: GenreRepository,
         mock_cast_member_repository: CastMemberRepository,
+        avatar_video: Video,
     ):
         """
-        Tests that the CreateVideoWithoutMedia use case raises a RelatedEntitiesNotFound
+        Tests that the UpdateVideoWithoutMedia use case raises a RelatedEntitiesNotFound
         exception when an invalid cast member ID is provided.
 
-        This test verifies that the `create_video_without_media` use case raises a
+        This test verifies that the `update_video_without_media` use case raises a
         `RelatedEntitiesNotFound` exception when the given cast member ID does not exist
         in the repository.
         """
 
-        use_case = CreateVideoWithoutMedia(
+        use_case = UpdateVideoWithoutMedia(
             video_repository=mock_video_repository,
             category_repository=mock_category_repository,
             genre_repository=mock_genre_repository,
@@ -423,13 +451,15 @@ class TesteCreateVideoWithoutMedia:
 
         with pytest.raises(RelatedEntitiesNotFound) as exc_info:
             use_case.execute(
-                CreateVideoWithoutMedia.Input(
+                UpdateVideoWithoutMedia.Input(
+                    id=avatar_video.id,
                     title="Avatar",
                     description="""A paraplegic Marine dispatched to the moon Pandora on a
                     unique mission becomes torn between following his orders and protecting
                     the world he feels is his home.""",
                     launch_year=2009,
                     duration=162.0,  # type: ignore
+                    published=True,
                     rating=Rating.AGE_12,
                     categories=set(),
                     genres=set(),

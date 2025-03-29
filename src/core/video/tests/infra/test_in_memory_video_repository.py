@@ -27,7 +27,6 @@ class TestSave:
             the world he feels is his home.""",
             duration=162.0,  # type: ignore
             launch_year=2009,
-            published=False,
             rating=Rating.AGE_12,
             categories={uuid.uuid4(), uuid.uuid4()},
             genres={uuid.uuid4(), uuid.uuid4()},
@@ -61,7 +60,6 @@ class TestGetById:
             the world he feels is his home.""",
             duration=162.0,  # type: ignore
             launch_year=2009,
-            published=False,
             rating=Rating.AGE_12,
             categories={uuid.uuid4(), uuid.uuid4()},
             genres={uuid.uuid4(), uuid.uuid4()},
@@ -107,7 +105,6 @@ class TestDelete:
             the world he feels is his home.""",
             duration=162.0,  # type: ignore
             launch_year=2009,
-            published=False,
             rating=Rating.AGE_12,
             categories={uuid.uuid4(), uuid.uuid4()},
             genres={uuid.uuid4(), uuid.uuid4()},
@@ -140,7 +137,6 @@ class TestUpdate:
             the world he feels is his home.""",
             duration=162.0,  # type: ignore
             launch_year=2009,
-            published=False,
             rating=Rating.AGE_12,
             categories={uuid.uuid4(), uuid.uuid4()},
             genres={uuid.uuid4(), uuid.uuid4()},
@@ -174,7 +170,6 @@ class TestList:
             the world he feels is his home.""",
             duration=162.0,  # type: ignore
             launch_year=2009,
-            published=False,
             rating=Rating.AGE_12,
             categories={uuid.uuid4(), uuid.uuid4()},
             genres={uuid.uuid4(), uuid.uuid4()},
@@ -190,7 +185,6 @@ class TestList:
             Na'vi race to protect their home.""",
             duration=162.0,  # type: ignore
             launch_year=2022,
-            published=False,
             rating=Rating.AGE_12,
             categories={uuid.uuid4(), uuid.uuid4()},
             genres={uuid.uuid4(), uuid.uuid4()},

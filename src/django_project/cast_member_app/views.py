@@ -28,11 +28,13 @@ from src.core.cast_member.application.use_cases.update_cast_member import (
 from src.django_project.cast_member_app.repository import DjangoORMCastMemberRepository
 from src.django_project.cast_member_app.serializers import (
     CreateCastMemberRequestSerializer,
-    CreateCastMemberResponseSerializer,
     ListCastMemberResponseSerializer,
     UpdateCastMemberRequestSerializer,
 )
-from src.django_project.serializers import DeleteRequestSerializer
+from src.django_project.serializers import (
+    CreateResponseSerializer,
+    DeleteRequestSerializer,
+)
 
 
 class CastMemberViewSet(viewsets.ViewSet):
@@ -95,7 +97,7 @@ class CastMemberViewSet(viewsets.ViewSet):
             )
 
         return Response(
-            data=CreateCastMemberResponseSerializer(instance=output).data,
+            data=CreateResponseSerializer(instance=output).data,
             status=HTTP_201_CREATED,
         )
 

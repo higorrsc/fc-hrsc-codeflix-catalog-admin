@@ -27,13 +27,15 @@ from src.core.category.application.use_cases.update_category import (
 from src.django_project.category_app.repository import DjangoORMCategoryRepository
 from src.django_project.category_app.serializers import (
     CreateCategoryRequestSerializer,
-    CreateCategoryResponseSerializer,
     ListCategoryResponseSerializer,
     RetrieveCategoryRequestSerializer,
     RetrieveCategoryResponseSerializer,
     UpdateCategoryRequestSerializer,
 )
-from src.django_project.serializers import DeleteRequestSerializer
+from src.django_project.serializers import (
+    CreateResponseSerializer,
+    DeleteRequestSerializer,
+)
 
 
 # Create your views here.
@@ -125,7 +127,7 @@ class CategoryViewSet(viewsets.ViewSet):
         output = use_case.execute(req)
 
         return Response(
-            data=CreateCategoryResponseSerializer(instance=output).data,
+            data=CreateResponseSerializer(instance=output).data,
             status=HTTP_201_CREATED,
         )
 

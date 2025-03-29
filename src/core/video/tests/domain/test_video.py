@@ -30,7 +30,6 @@ def video_avatar() -> Video:
         the world he feels is his home.""",
         duration=162.0,  # type: ignore
         launch_year=2009,
-        published=False,
         rating=Rating.AGE_12,
         categories=set(uuid.uuid4() for _ in range(0)),
         genres=set(uuid.uuid4() for _ in range(4)),
@@ -137,7 +136,6 @@ class TestVideoEntity:
             the world he feels is his home.""",
             duration=162.0,  # type: ignore
             launch_year=2009,
-            published=False,
             rating=Rating.AGE_12,
             categories=set(),
             genres=set(),

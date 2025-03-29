@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from src.core._shared.entity import AbstractEntity
+from src.core._shared.domain.entity import AbstractEntity
 
 
 @dataclass
