@@ -264,6 +264,86 @@ class TestListAPI:
 
 
 @pytest.mark.django_db
+class TestRetrieveAPI:
+    """
+    Test class for the RetrieveVideoAPI view
+    """
+
+    def test_get_video(
+        self,
+        avatar_movie: Video,
+        movie_category: Category,
+        action_genre: Genre,
+        adventure_genre: Genre,
+        actor_cast_member: CastMember,
+        director_cast_member: CastMember,
+    ):
+        """
+        Tests that a Video instance can be retrieved from the database using DjangoORMVideoRepository.
+
+        This test creates a Video instance with predefined attributes and saves it
+        to the repository. It then retrieves the video by its ID and asserts that the
+        video is correctly retrieved with all its associated categories, genres, and
+        cast members.
+
+        Asserts:
+            - The status code of the response is 200.
+            - The retrieved video data matches the expected data.
+        """
+
+        category_repository = DjangoORMCategoryRepository()
+        category_repository.save(movie_category)
+
+        genre_repository = DjangoORMGenreRepository()
+        genre_repository.save(action_genre)
+        genre_repository.save(adventure_genre)
+
+        cast_member_repository = DjangoORMCastMemberRepository()
+        cast_member_repository.save(actor_cast_member)
+        cast_member_repository.save(director_cast_member)
+
+        video_repository = DjangoORMVideoRepository()
+        video_repository.save(avatar_movie)
+
+        url = f"/api/videos/{avatar_movie.id}/"
+        expected_data = {
+            "data": {
+                "id": str(avatar_movie.id),
+                "title": "Avatar",
+                "description": "A marine on an alien planet",
+                "duration": 162,
+                "launch_year": 2009,
+                "rating": "AGE_14",
+                "categories": [movie_category.id],
+                "genres": [action_genre.id, adventure_genre.id],
+                "cast_members": [actor_cast_member.id, director_cast_member.id],
+            }
+        }
+
+        response = APIClient().get(path=url)
+
+        assert response.status_code == HTTP_200_OK  # type: ignore
+        assert response.data, expected_data  # type: ignore
+
+    def test_get_video_with_invalid_id(self):
+        """
+        Tests that a 404 response is returned when retrieving a video with an
+        invalid ID.
+
+        Asserts:
+            - The status code of the response is 404.
+            - The response data contains an error message indicating that the
+              video was not found.
+        """
+
+        url = f"/api/videos/{uuid.uuid4()}/"
+        response = APIClient().get(path=url)
+
+        assert response.status_code == HTTP_404_NOT_FOUND  # type: ignore
+        assert response.data == {"error": "Video not found"}  # type: ignore
+
+
+@pytest.mark.django_db
 class TestCreateAPI:
     """
     Test class for the CreateVideoAPI view

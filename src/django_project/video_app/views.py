@@ -26,6 +26,7 @@ from src.core.video.application.use_cases.create_video_without_media import (
 from src.core.video.application.use_cases.delete_video_without_media import (
     DeleteVideoWithoutMedia,
 )
+from src.core.video.application.use_cases.get_video import GetVideo
 from src.core.video.application.use_cases.list_video_without_media import (
     ListVideoWithoutMedia,
 )
@@ -38,12 +39,13 @@ from src.django_project.category_app.repository import DjangoORMCategoryReposito
 from src.django_project.genre_app.repository import DjangoORMGenreRepository
 from src.django_project.serializers import (
     CreateResponseSerializer,
-    DeleteRequestSerializer,
+    RetrieveDeleteRequestSerializer,
 )
 from src.django_project.video_app.repository import DjangoORMVideoRepository
 from src.django_project.video_app.serializers import (
     ListVideoWithoutMediaResponseSerializer,
     UpdateVideoWithoutMediaRequestSerializer,
+    VideoWithMediaResponseSerializer,
     VideoWithoutMediaRequestSerializer,
 )
 
@@ -87,17 +89,30 @@ class VideoViewSet(viewsets.ViewSet):
 
     def retrieve(self, request: Request, pk=None) -> Response:
         """
-        Retrieve a video by its id.
+        Retrieve a video by its ID.
 
         Args:
             request (Request): The request object containing request data.
-            pk (uuid.UUID): The id of the video to be retrieved.
+            pk (str): The id of the video to be retrieved.
 
         Returns:
             Response: A response object containing the video data.
         """
 
-        raise NotImplementedError
+        serializer = RetrieveDeleteRequestSerializer(data={"id": pk})
+        serializer.is_valid(raise_exception=True)
+
+        try:
+            use_case = GetVideo(repository=DjangoORMVideoRepository())
+            res: GetVideo.Output = use_case.execute(GetVideo.Input(id=uuid.UUID(pk)))  # type: ignore
+        except VideoNotFound:
+            return Response(
+                data={"error": "Video not found"},
+                status=HTTP_404_NOT_FOUND,
+            )
+
+        output = VideoWithMediaResponseSerializer(instance=res)
+        return Response(data=output.data, status=HTTP_200_OK)
 
     def create(self, request: Request) -> Response:
         """
@@ -196,7 +211,7 @@ class VideoViewSet(viewsets.ViewSet):
             Response: A response object containing the deleted video data.
         """
 
-        serializer = DeleteRequestSerializer(data={"id": pk})
+        serializer = RetrieveDeleteRequestSerializer(data={"id": pk})
         serializer.is_valid(raise_exception=True)
 
         try:
