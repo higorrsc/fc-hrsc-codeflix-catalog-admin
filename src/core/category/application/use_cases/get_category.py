@@ -32,6 +32,13 @@ class GetCategory:
     """
 
     def __init__(self, repository: CategoryRepository):
+        """
+        Initialize the GetCategory use case.
+
+        Args:
+            repository (CategoryRepository): The category repository.
+        """
+
         self.repository = repository
 
     def execute(self, request: GetCategoryRequest) -> GetCategoryResponse:
