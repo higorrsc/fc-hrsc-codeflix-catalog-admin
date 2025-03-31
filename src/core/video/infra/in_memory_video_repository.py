@@ -5,6 +5,10 @@ from src.core.video.domain.video_repository import VideoRepository
 
 
 class InMemoryVideoRepository(VideoRepository):
+    """
+    An in-memory implementation of the VideoRepository interface.
+    """
+
     def __init__(self, videos=None):
         """
         Initialize the in-memory video repository.
