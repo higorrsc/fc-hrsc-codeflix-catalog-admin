@@ -6,6 +6,7 @@ from src.core.video.domain.events.event import AudioVideoMediaUpdated
 from src.core.video.domain.value_objects import (
     AudioVideoMedia,
     ImageMedia,
+    ImageType,
     MediaStatus,
     MediaType,
     Rating,
@@ -53,6 +54,7 @@ def new_image_media() -> ImageMedia:
         check_sum="1234567890",
         name="new_image_media_name",
         location="new/path/to/thumbnail",
+        image_type=ImageType.THUMBNAIL,
     )
 
 
@@ -147,16 +149,19 @@ class TestVideoEntity:
                 check_sum="123",
                 name="banner",
                 location="path/to/banner",
+                image_type=ImageType.BANNER,
             ),
             thumbnail=ImageMedia(
                 check_sum="123",
                 name="thumbnail",
                 location="path/to/thumbnail",
+                image_type=ImageType.THUMBNAIL,
             ),
             thumbnail_half=ImageMedia(
                 check_sum="123",
                 name="thumbnail_half",
                 location="path/to/thumbnail_half",
+                image_type=ImageType.THUMBNAIL_HALF,
             ),
             trailer=AudioVideoMedia(
                 check_sum="123",
