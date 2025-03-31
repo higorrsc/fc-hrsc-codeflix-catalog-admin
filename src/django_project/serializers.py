@@ -69,9 +69,9 @@ class ListResponseSerializer(serializers.Serializer, Generic[TSerializer]):
         self.fields["data"] = serializers.ListSerializer(child=child_serializer())
 
 
-class DeleteRequestSerializer(serializers.Serializer):
+class RetrieveDeleteRequestSerializer(serializers.Serializer):
     """
-    Generic serializer for delete request
+    Generic serializer for retrieve and delete request
     """
 
     id = serializers.UUIDField()

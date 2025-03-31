@@ -33,7 +33,7 @@ from src.django_project.cast_member_app.serializers import (
 )
 from src.django_project.serializers import (
     CreateResponseSerializer,
-    DeleteRequestSerializer,
+    RetrieveDeleteRequestSerializer,
 )
 
 
@@ -154,7 +154,7 @@ class CastMemberViewSet(viewsets.ViewSet):
             Response: A response object containing the deleted cast member data.
         """
 
-        serializer = DeleteRequestSerializer(data={"id": pk})
+        serializer = RetrieveDeleteRequestSerializer(data={"id": pk})
         serializer.is_valid(raise_exception=True)
 
         req = DeleteRequest(**serializer.validated_data)  # type: ignore

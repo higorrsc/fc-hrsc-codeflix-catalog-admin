@@ -34,7 +34,7 @@ from src.django_project.category_app.serializers import (
 )
 from src.django_project.serializers import (
     CreateResponseSerializer,
-    DeleteRequestSerializer,
+    RetrieveDeleteRequestSerializer,
 )
 
 
@@ -178,7 +178,7 @@ class CategoryViewSet(viewsets.ViewSet):
             Response: A response object containing the deleted category data.
         """
 
-        serializer = DeleteRequestSerializer(data={"id": pk})
+        serializer = RetrieveDeleteRequestSerializer(data={"id": pk})
         serializer.is_valid(raise_exception=True)
 
         req = DeleteRequest(id=pk)  # type: ignore
