@@ -3,6 +3,17 @@ from enum import StrEnum, unique
 
 
 @unique
+class ImageType(StrEnum):
+    """
+    Enumeration representing the type of a image.
+    """
+
+    BANNER = "BANNER"
+    THUMBNAIL = "THUMBNAIL"
+    THUMBNAIL_HALF = "THUMBNAIL_HALF"
+
+
+@unique
 class MediaStatus(StrEnum):
     """
     Enumeration representing the status of a media.
@@ -20,9 +31,6 @@ class MediaType(StrEnum):
     Enumeration representing the type of a media.
     """
 
-    BANNER = "BANNER"
-    THUMBNAIL = "THUMBNAIL"
-    THUMBNAIL_HALF = "THUMBNAIL_HALF"
     TRAILER = "TRAILER"
     VIDEO = "VIDEO"
 
@@ -50,6 +58,7 @@ class ImageMedia:
 
     name: str
     location: str
+    image_type: ImageType
     check_sum: str = ""
 
 
