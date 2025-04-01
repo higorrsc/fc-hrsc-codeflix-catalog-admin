@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from enum import StrEnum, unique
 
 
@@ -74,3 +74,42 @@ class AudioVideoMedia:
     status: MediaStatus
     media_type: MediaType
     check_sum: str = ""
+
+    def _update(self, **changes):
+        """
+        Returns a new instance with the given changes.
+
+        Args:
+            **changes: The changes to apply to the instance.
+
+        Returns:
+            A new instance with the given changes.
+        """
+
+        return replace(self, **changes)
+
+    def encode_complete(self, encoded_location: str):
+        """
+        Returns a new instance with the encoded location and status set to COMPLETED.
+
+        Args:
+            encoded_location (str): The location of the encoded media.
+
+        Returns:
+            A new instance with the given encoded location and status set to COMPLETED.
+        """
+
+        return self._update(
+            encoded_location=encoded_location,
+            status=MediaStatus.COMPLETED,
+        )
+
+    def encode_fail(self):
+        """
+        Returns a new instance with the status set to ERROR.
+
+        Returns:
+            A new instance with the status set to ERROR.
+        """
+
+        return self._update(status=MediaStatus.ERROR)

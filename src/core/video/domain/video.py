@@ -243,32 +243,25 @@ class Video(AbstractEntity):
         self.published = True
         self.validate()
 
-    def process(self, status: MediaStatus, encoded_location: str) -> None:
+    def process(self, status: MediaStatus, encoded_location: str = "") -> None:
         """
         Process the video media.
 
         Args:
             status (MediaStatus): The status of the processed video media.
-            encoded_location (str): The location of the processed video media.
+            encoded_location (str): The location of the encoded video media.
 
-        If the status is COMPLETED, the video is updated with the encoded location.
+        This method sets the video media status to the given status and performs
+        the needed actions. If the status is COMPLETED, it sets the video as published.
+        Otherwise, it adds errors to the notification.
+
+        Raises:
+            ValueError: If there are errors in the notification after validation.
         """
 
         if status == MediaStatus.COMPLETED:
-            self.video = AudioVideoMedia(
-                name=self.video.name,  # type: ignore
-                raw_location=self.video.raw_location,  # type: ignore
-                encoded_location=encoded_location,
-                status=MediaStatus.COMPLETED,
-                media_type=MediaType.VIDEO,
-            )
+            self.video = self.video.encode_complete(encoded_location)  # type: ignore
             self.publish()
         else:
-            self.video = AudioVideoMedia(
-                name=self.video.name,  # type: ignore
-                raw_location=self.video.raw_location,  # type: ignore
-                encoded_location="",
-                status=MediaStatus.ERROR,
-                media_type=MediaType.VIDEO,
-            )
+            self.video = self.video.encode_fail()  # type: ignore
         self.validate()
