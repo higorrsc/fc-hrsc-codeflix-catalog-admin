@@ -187,7 +187,7 @@ class RatingTypeField(serializers.ChoiceField):
         return str(super().to_representation(value))
 
 
-class AudioVideoMediaSerializer(serializers.ModelSerializer):
+class AudioVideoMediaSerializer(serializers.Serializer):
     """
     Serializer for audio video media
     """
@@ -200,7 +200,7 @@ class AudioVideoMediaSerializer(serializers.ModelSerializer):
     check_sum = serializers.CharField(required=False, allow_blank=True)
 
 
-class ImageMediaSerializer(serializers.ModelSerializer):
+class ImageMediaSerializer(serializers.Serializer):
     """
     Serializer for image media
     """
