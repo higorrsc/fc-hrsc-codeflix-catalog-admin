@@ -3,9 +3,17 @@ from typing import List
 
 from django.db import transaction
 
+from src.core.video.domain.value_objects import (
+    AudioVideoMedia,
+    ImageMedia,
+    ImageType,
+    MediaStatus,
+    MediaType,
+)
 from src.core.video.domain.video import Video
 from src.core.video.domain.video_repository import VideoRepository
 from src.django_project.video_app.models import AudioVideoMedia as AudioVideoMediaModel
+from src.django_project.video_app.models import ImageMedia as ImageMediaModel
 from src.django_project.video_app.models import Video as VideoModel
 
 
@@ -99,17 +107,20 @@ class DjangoORMVideoRepository(VideoRepository):
             video_model.categories.set(video.categories)
             video_model.genres.set(video.genres)
             video_model.cast_members.set(video.cast_members)
-            video_model.video = (
-                AudioVideoMediaModel.objects.create(  # type: ignore
-                    name=video.video.name,  # type: ignore
-                    raw_location=video.video.raw_location,  # type: ignore
-                    encoded_location=video.video.encoded_location,  # type: ignore
-                    check_sum=video.video.check_sum,  # type: ignore
-                    status=video.video.status,  # type: ignore
-                )
-                if video.video
-                else None
-            )
+            if video.video:
+                video_model.video = AudioVideoMediaMapper.to_model(video.video)  # type: ignore
+                video_model.video.save()  # type: ignore
+            # video_model.video = (
+            #     AudioVideoMediaModel.objects.create(  # type: ignore
+            #         name=video.video.name,  # type: ignore
+            #         raw_location=video.video.raw_location,  # type: ignore
+            #         encoded_location=video.video.encoded_location,  # type: ignore
+            #         check_sum=video.video.check_sum,  # type: ignore
+            #         status=video.video.status,  # type: ignore
+            #     )
+            #     if video.video
+            #     else None
+            # )
             video_model.save()
         return None
 
@@ -179,4 +190,125 @@ class VideoModelMapper:
             cast_members={
                 cast_member.id for cast_member in video_model.cast_members.all()
             },
+            banner=ImageMediaMapper.to_entity(
+                video_model.banner if video_model.banner else None  # type: ignore
+            ),
+            thumbnail=ImageMediaMapper.to_entity(
+                video_model.thumbnail if video_model.thumbnail else None  # type: ignore
+            ),
+            thumbnail_half=ImageMediaMapper.to_entity(
+                video_model.thumbnail_half if video_model.thumbnail_half else None  # type: ignore
+            ),
+            trailer=AudioVideoMediaMapper.to_entity(
+                video_model.trailer if video_model.trailer else None  # type: ignore
+            ),
+            video=AudioVideoMediaMapper.to_entity(
+                video_model.video if video_model.video else None  # type: ignore
+            ),
+        )
+
+
+class AudioVideoMediaMapper:
+    """
+    A class for mapping between AudioVideoMedia and AudioVideoMediaModel.
+    """
+
+    @staticmethod
+    def to_entity(
+        audio_video_media_model: AudioVideoMediaModel,
+    ) -> AudioVideoMedia | None:
+        """
+        Maps an AudioVideoMediaModel to an AudioVideoMedia entity.
+
+        Args:
+            audio_video_media_model (AudioVideoMediaModel): The model to be mapped.
+
+        Returns:
+            AudioVideoMedia | None: The mapped AudioVideoMedia entity, or None if the model is None.
+        """
+
+        if not audio_video_media_model:
+            return None
+
+        return AudioVideoMedia(
+            name=audio_video_media_model.name,
+            raw_location=audio_video_media_model.raw_location,
+            encoded_location=audio_video_media_model.encoded_location,
+            check_sum=audio_video_media_model.check_sum,
+            status=MediaStatus(audio_video_media_model.status),
+            media_type=MediaType(audio_video_media_model.media_type),
+        )
+
+    @staticmethod
+    def to_model(audio_video_media: AudioVideoMedia) -> AudioVideoMediaModel | None:
+        """
+        Maps an AudioVideoMedia entity to an AudioVideoMediaModel.
+
+        Args:
+            audio_video_media (AudioVideoMedia): The entity to be mapped.
+
+        Returns:
+            AudioVideoMediaModel | None: The mapped AudioVideoMediaModel, or None if
+                                         the entity is None.
+        """
+        if not audio_video_media:
+            return None
+
+        return AudioVideoMediaModel(
+            name=audio_video_media.name,
+            raw_location=audio_video_media.raw_location,
+            encoded_location=audio_video_media.encoded_location,
+            check_sum=audio_video_media.check_sum,
+            status=audio_video_media.status,
+            media_type=audio_video_media.media_type,
+        )
+
+
+class ImageMediaMapper:
+    """
+    A class for mapping between ImageMedia and ImageMediaModel.
+    """
+
+    @staticmethod
+    def to_entity(image_media_model: ImageMediaModel) -> ImageMedia | None:
+        """
+        Maps an ImageMediaModel to an ImageMedia entity.
+
+        Args:
+            image_media_model (ImageMediaModel): The model to be mapped.
+
+        Returns:
+            ImageMedia | None: The mapped ImageMedia entity, or None if the model is None.
+        """
+
+        if not image_media_model:
+            return None
+
+        return ImageMedia(
+            name=image_media_model.name,
+            location=image_media_model.location,
+            image_type=ImageType(image_media_model.image_type),
+            check_sum=image_media_model.check_sum,
+        )
+
+    @staticmethod
+    def to_model(image_media: ImageMedia) -> ImageMediaModel | None:
+        """
+        Maps an ImageMedia entity to an ImageMediaModel.
+
+        Args:
+            image_media (ImageMedia): The entity to be mapped.
+
+        Returns:
+            ImageMediaModel | None: The mapped ImageMediaModel, or None if the entity is None.
+        """
+
+        if not image_media:
+            return None
+
+        return ImageMediaModel(
+            name=image_media.name,
+            location=image_media.location,
+            image_type=image_media.image_type,
+            check_sum=image_media.check_sum,
         )
