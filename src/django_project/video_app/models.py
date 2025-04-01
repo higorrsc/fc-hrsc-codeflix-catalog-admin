@@ -2,7 +2,12 @@ import uuid
 
 from django.db import models
 
-from src.core.video.domain.value_objects import MediaStatus, Rating
+from src.core.video.domain.value_objects import (
+    ImageType,
+    MediaStatus,
+    MediaType,
+    Rating,
+)
 
 
 class Video(models.Model):
@@ -108,6 +113,8 @@ class ImageMedia(models.Model):
     Model representing an image media.
     """
 
+    IMAGE_TYPE_CHOICES = [(type.name, type.name) for type in ImageType]
+
     id = models.UUIDField(
         primary_key=True,
         default=uuid.uuid4,
@@ -116,6 +123,7 @@ class ImageMedia(models.Model):
     check_sum = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
     location = models.CharField(max_length=255)
+    image_type = models.CharField(max_length=15, choices=IMAGE_TYPE_CHOICES)
 
     def __str__(self) -> str:
         """
@@ -143,6 +151,7 @@ class AudioVideoMedia(models.Model):
     """
 
     STATUS_CHOICES = [(status.name, status.name) for status in MediaStatus]
+    MEDIA_TYPE_CHOICES = [(type.name, type.name) for type in MediaType]
 
     id = models.UUIDField(
         primary_key=True,
@@ -154,6 +163,7 @@ class AudioVideoMedia(models.Model):
     raw_location = models.CharField(max_length=255)
     encoded_location = models.CharField(max_length=255)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES)
+    media_type = models.CharField(max_length=10, choices=MEDIA_TYPE_CHOICES)
 
     def __str__(self) -> str:
         """
