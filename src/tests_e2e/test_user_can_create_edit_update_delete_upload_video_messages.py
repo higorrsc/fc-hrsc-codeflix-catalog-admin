@@ -1,3 +1,4 @@
+import threading
 import time
 
 import pytest
@@ -6,10 +7,11 @@ from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CON
 from rest_framework.test import APIClient
 
 from src.core.video.domain.value_objects import MediaStatus, MediaType
+from src.core.video.infra.video_converted_consumer import VideoConvertedRabbitMQConsumer
 from src.core.video.infra.video_converted_producer import VideoConvertedRabbitMQProducer
 
 
-@pytest.mark.django_db
+@pytest.mark.django_db(transaction=True)
 class TestCreateEditUpdateDeleteAndUploadVideo:
     """
     Test class for testing user can create, edit and delete a video with file upload
@@ -24,6 +26,10 @@ class TestCreateEditUpdateDeleteAndUploadVideo:
         verifies that it was updated, deletes the video, and verifies that it was
         deleted.
         """
+
+        consumer = VideoConvertedRabbitMQConsumer()
+        thread = threading.Thread(target=consumer.start, daemon=True)
+        thread.start()
 
         api_client = APIClient()
 
@@ -151,6 +157,18 @@ class TestCreateEditUpdateDeleteAndUploadVideo:
         )
         assert patch_response.status_code == HTTP_200_OK  # type: ignore
 
+        get_response = api_client.get(f"/api/videos/{video_id}/")
+        assert get_response.status_code == HTTP_200_OK  # type: ignore
+        assert get_response.data["id"] == video_id  # type: ignore
+        assert get_response.data["video"] == {  # type: ignore
+            "name": "video.mp4",
+            "raw_location": f"videos/{video_id}/video.mp4",
+            "encoded_location": "",
+            "status": "PENDING",
+            "media_type": "VIDEO",
+            "check_sum": "",
+        }
+
         producer = VideoConvertedRabbitMQProducer()
         message = {
             "error": "",
@@ -162,12 +180,21 @@ class TestCreateEditUpdateDeleteAndUploadVideo:
         }
         producer.publish(message=message)
         producer.close()
+
         time.sleep(10)
+        thread.join(timeout=10)
 
         get_response = api_client.get(f"/api/videos/{video_id}/")
         assert get_response.status_code == HTTP_200_OK  # type: ignore
         assert get_response.data["id"] == video_id  # type: ignore
-
+        assert get_response.data["video"] == {  # type: ignore
+            "name": "video.mp4",
+            "raw_location": f"videos/{video_id}/video.mp4",
+            "encoded_location": "/path/to/encoded/video",
+            "status": "COMPLETED",
+            "media_type": "VIDEO",
+            "check_sum": "",
+        }
         delete_response = api_client.delete(path=f"/api/videos/{video_id}/")
         assert delete_response.status_code == HTTP_204_NO_CONTENT  # type: ignore
 
