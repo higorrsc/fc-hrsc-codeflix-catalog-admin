@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict
+from typing import Dict
 
 import jwt
 from dotenv import load_dotenv
@@ -28,11 +28,15 @@ class JwtAuthService(AbstractAuthServiceInterface):
         Raises:
             ValueError: If the AUTH_PUBLIC_KEY environment variable is not set.
         """
-
-        self.public_key = os.getenv("AUTH_PUBLIC_KEY")
+        raw_public_key = os.getenv("AUTH_PUBLIC_KEY")
+        self.public_key = (
+            f"-----BEGIN PUBLIC KEY-----\n{raw_public_key}\n-----END PUBLIC KEY-----"
+            if raw_public_key
+            else None
+        )
         self.token = token.replace("Bearer ", "", 1) if token else None
 
-    def _decode_token(self) -> Dict[str, Any]:
+    def _decode_token(self) -> Dict:
         """
         Decode the token and return its payload.
 
