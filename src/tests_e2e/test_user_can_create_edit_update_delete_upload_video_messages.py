@@ -1,5 +1,6 @@
 import threading
 import time
+from pathlib import Path
 
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -157,12 +158,13 @@ class TestCreateEditUpdateDeleteAndUploadVideo:
         )
         assert patch_response.status_code == HTTP_200_OK  # type: ignore
 
+        raw_path = Path("videos") / str(video_id) / "video.mp4"
         get_response = api_client.get(f"/api/videos/{video_id}/")
         assert get_response.status_code == HTTP_200_OK  # type: ignore
         assert get_response.data["id"] == video_id  # type: ignore
         assert get_response.data["video"] == {  # type: ignore
             "name": "video.mp4",
-            "raw_location": f"videos/{video_id}/video.mp4",
+            "raw_location": str(raw_path),
             "encoded_location": "",
             "status": "PENDING",
             "media_type": "VIDEO",
@@ -189,7 +191,7 @@ class TestCreateEditUpdateDeleteAndUploadVideo:
         assert get_response.data["id"] == video_id  # type: ignore
         assert get_response.data["video"] == {  # type: ignore
             "name": "video.mp4",
-            "raw_location": f"videos/{video_id}/video.mp4",
+            "raw_location": str(raw_path),
             "encoded_location": "/path/to/encoded/video",
             "status": "COMPLETED",
             "media_type": "VIDEO",
