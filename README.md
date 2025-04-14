@@ -37,8 +37,10 @@ thread.start()
 
 O Consumer sendo inciado fora do teste implica no uso do banco de dados de "produção" ao invés do banco de dados criado temporariamente para o teste. Ao publicar a mensagem de novo vídeo no RabbitMQ, o Consumer tentará encontrar as informações do vídeo no banco de dados de "produção" e retornará o erro de vídeo não encontrado.
 
-## Chamada do Consumer e resultado do teste
+## Chamada do Consumer, do Producer e resultado do teste
 
 ![Chamada do Consumer a partir do teste](.github/images/pytest_consumer_started.png)
+
+![Chamada do Producer a partir do teste](.github/images/pytest_producer_publish.png)
 
 ![Resultado teste](.github/images/pytest_result.png)
