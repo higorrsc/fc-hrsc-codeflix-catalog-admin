@@ -1,3 +1,4 @@
+import os
 import uuid
 
 import pytest
@@ -11,6 +12,7 @@ from rest_framework.status import (
 from rest_framework.test import APIClient
 
 from src.config import DEFAULT_PAGE_SIZE
+from src.core._shared.infrastructure.auth.jwt_token_generator import JwtTokenGenerator
 from src.core.cast_member.domain.cast_member import CastMember, CastMemberType
 from src.core.category.domain.category import Category
 from src.core.genre.domain.genre import Genre
@@ -180,6 +182,55 @@ def avatar_2_movie(
     )
 
 
+@pytest.fixture(scope="session", autouse=True)
+def setup_auth_env():
+    fake_auth = JwtTokenGenerator()
+    os.environ["AUTH_PUBLIC_KEY"] = (
+        fake_auth.public_key_pem.decode()
+        .replace("-----BEGIN PUBLIC KEY-----\n", "")
+        .replace("\n-----END PUBLIC KEY-----\n", "")
+    )
+    return fake_auth
+
+
+@pytest.fixture
+def auth_token(setup_auth_env):
+    return setup_auth_env.generate_token(
+        user_info={
+            "username": "admin",
+            "email": "admin@example.com",
+            "first_name": "Admin",
+            "last_name": "User",
+            "realm_roles": [
+                "offline_access",
+                "admin",
+                "uma_authorization",
+                "default-roles-codeflix",
+            ],
+            "resource_roles": [
+                "manage-account",
+                "view-profile",
+            ],
+        }
+    )
+
+
+@pytest.fixture
+def api_client_with_auth(auth_token):
+    """
+    Fixture for an API client with authentication.
+
+    Returns:
+        APIClient: An instance of the APIClient with the provided authentication token.
+    """
+
+    return APIClient(
+        headers={
+            "Authorization": f"Bearer {auth_token}",
+        }
+    )
+
+
 @pytest.mark.django_db
 class TestListAPI:
     """
@@ -195,6 +246,7 @@ class TestListAPI:
         adventure_genre: Genre,
         actor_cast_member: CastMember,
         director_cast_member: CastMember,
+        api_client_with_auth: APIClient,
     ):
         """
         Tests that a list of Video instances can be retrieved from the ListVideoAPI
@@ -257,7 +309,7 @@ class TestListAPI:
             },
         }
 
-        response = APIClient().get(path=url)
+        response = api_client_with_auth.get(path=url)
 
         assert response.status_code == HTTP_200_OK  # type: ignore
         assert response.data, expected_data  # type: ignore
@@ -277,6 +329,7 @@ class TestRetrieveAPI:
         adventure_genre: Genre,
         actor_cast_member: CastMember,
         director_cast_member: CastMember,
+        api_client_with_auth: APIClient,
     ):
         """
         Tests that a Video instance can be retrieved from the database using DjangoORMVideoRepository.
@@ -320,12 +373,15 @@ class TestRetrieveAPI:
             }
         }
 
-        response = APIClient().get(path=url)
+        response = api_client_with_auth.get(path=url)
 
         assert response.status_code == HTTP_200_OK  # type: ignore
         assert response.data, expected_data  # type: ignore
 
-    def test_get_video_with_invalid_id(self):
+    def test_get_video_with_invalid_id(
+        self,
+        api_client_with_auth: APIClient,
+    ):
         """
         Tests that a 404 response is returned when retrieving a video with an
         invalid ID.
@@ -337,7 +393,7 @@ class TestRetrieveAPI:
         """
 
         url = f"/api/videos/{uuid.uuid4()}/"
-        response = APIClient().get(path=url)
+        response = api_client_with_auth.get(path=url)
 
         assert response.status_code == HTTP_404_NOT_FOUND  # type: ignore
         assert response.data == {"error": "Video not found"}  # type: ignore
@@ -356,6 +412,7 @@ class TestCreateAPI:
         adventure_genre: Genre,
         actor_cast_member: CastMember,
         director_cast_member: CastMember,
+        api_client_with_auth: APIClient,
     ):
         """
         When creating a video without valid data and providing an invalid category ID,
@@ -397,7 +454,7 @@ class TestCreateAPI:
             ],
         }
 
-        response = APIClient().post(
+        response = api_client_with_auth.post(
             path=url,
             data=data,
             format="json",
@@ -413,6 +470,7 @@ class TestCreateAPI:
         adventure_genre: Genre,
         actor_cast_member: CastMember,
         director_cast_member: CastMember,
+        api_client_with_auth: APIClient,
     ):
         """
         When creating a video without valid data and providing an invalid category ID,
@@ -455,7 +513,7 @@ class TestCreateAPI:
             ],
         }
 
-        response = APIClient().post(
+        response = api_client_with_auth.post(
             path=url,
             data=data,
             format="json",
@@ -471,6 +529,7 @@ class TestCreateAPI:
         adventure_genre: Genre,
         actor_cast_member: CastMember,
         director_cast_member: CastMember,
+        api_client_with_auth: APIClient,
     ):
         """
         When creating a video without valid data and providing an invalid genre ID,
@@ -514,7 +573,7 @@ class TestCreateAPI:
             ],
         }
 
-        response = APIClient().post(
+        response = api_client_with_auth.post(
             path=url,
             data=data,
             format="json",
@@ -530,6 +589,7 @@ class TestCreateAPI:
         adventure_genre: Genre,
         actor_cast_member: CastMember,
         director_cast_member: CastMember,
+        api_client_with_auth: APIClient,
     ):
         """
         When creating a video without valid data and providing an invalid cast member ID,
@@ -573,7 +633,7 @@ class TestCreateAPI:
             ],
         }
 
-        response = APIClient().post(
+        response = api_client_with_auth.post(
             path=url,
             data=data,
             format="json",
@@ -597,6 +657,7 @@ class TestUpdateAPI:
         adventure_genre: Genre,
         actor_cast_member: CastMember,
         director_cast_member: CastMember,
+        api_client_with_auth: APIClient,
     ):
         """
         Tests that a Video instance can be updated from the UpdateVideoAPI view.
@@ -644,7 +705,7 @@ class TestUpdateAPI:
             ],
         }
 
-        response = APIClient().put(
+        response = api_client_with_auth.put(
             path=url,
             data=data,
             format="json",
@@ -660,6 +721,7 @@ class TestUpdateAPI:
         adventure_genre: Genre,
         actor_cast_member: CastMember,
         director_cast_member: CastMember,
+        api_client_with_auth: APIClient,
     ):
         """
         Tests that updating a video with an invalid category ID fails.
@@ -709,7 +771,7 @@ class TestUpdateAPI:
             ],
         }
 
-        response = APIClient().put(
+        response = api_client_with_auth.put(
             path=url,
             data=data,
             format="json",
@@ -733,6 +795,7 @@ class TestDeleteAPI:
         adventure_genre: Genre,
         actor_cast_member: CastMember,
         director_cast_member: CastMember,
+        api_client_with_auth: APIClient,
     ):
         """
         Tests that a Video instance can be deleted from the database using DjangoORMVideoRepository.
@@ -763,11 +826,14 @@ class TestDeleteAPI:
         video_repository.save(avatar_movie)
 
         url = f"/api/videos/{avatar_movie.id}/"
-        response = APIClient().delete(url)
+        response = api_client_with_auth.delete(url)
 
         assert response.status_code == HTTP_204_NO_CONTENT  # type: ignore
 
-    def test_delete_video_not_found(self):
+    def test_delete_video_not_found(
+        self,
+        api_client_with_auth: APIClient,
+    ):
         """
         Tests that the API returns 404 when the given video ID does not exist.
 
@@ -779,7 +845,7 @@ class TestDeleteAPI:
         """
 
         url = f"/api/videos/{uuid.uuid4()}/"
-        response = APIClient().delete(url)
+        response = api_client_with_auth.delete(url)
 
         assert response.status_code == HTTP_404_NOT_FOUND  # type: ignore
         assert "Video not found" in response.data["error"]  # type: ignore

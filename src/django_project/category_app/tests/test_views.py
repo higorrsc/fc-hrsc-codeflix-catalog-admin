@@ -1,3 +1,4 @@
+import os
 import uuid
 
 import pytest
@@ -11,6 +12,7 @@ from rest_framework.status import (
 from rest_framework.test import APIClient
 
 from src.config import DEFAULT_PAGE_SIZE
+from src.core._shared.infrastructure.auth.jwt_token_generator import JwtTokenGenerator
 from src.core.category.domain.category import Category
 from src.django_project.category_app.repository import DjangoORMCategoryRepository
 
@@ -58,6 +60,55 @@ def category_repository() -> DjangoORMCategoryRepository:
     return DjangoORMCategoryRepository()
 
 
+@pytest.fixture(scope="session", autouse=True)
+def setup_auth_env():
+    fake_auth = JwtTokenGenerator()
+    os.environ["AUTH_PUBLIC_KEY"] = (
+        fake_auth.public_key_pem.decode()
+        .replace("-----BEGIN PUBLIC KEY-----\n", "")
+        .replace("\n-----END PUBLIC KEY-----\n", "")
+    )
+    return fake_auth
+
+
+@pytest.fixture
+def auth_token(setup_auth_env):
+    return setup_auth_env.generate_token(
+        user_info={
+            "username": "admin",
+            "email": "admin@example.com",
+            "first_name": "Admin",
+            "last_name": "User",
+            "realm_roles": [
+                "offline_access",
+                "admin",
+                "uma_authorization",
+                "default-roles-codeflix",
+            ],
+            "resource_roles": [
+                "manage-account",
+                "view-profile",
+            ],
+        }
+    )
+
+
+@pytest.fixture
+def api_client_with_auth(auth_token):
+    """
+    Fixture for an API client with authentication.
+
+    Returns:
+        APIClient: An instance of the APIClient with the provided authentication token.
+    """
+
+    return APIClient(
+        headers={
+            "Authorization": f"Bearer {auth_token}",
+        }
+    )
+
+
 @pytest.mark.django_db
 class TestListAPI:
     """
@@ -69,6 +120,7 @@ class TestListAPI:
         category_movie: Category,
         category_tv_show: Category,
         category_repository: DjangoORMCategoryRepository,
+        api_client_with_auth: APIClient,
     ):
         """
         Test that the API returns the expected list of categories.
@@ -106,9 +158,9 @@ class TestListAPI:
             },
         }
 
-        response = APIClient().get(url)
-        assert response.status_code, 200  # type: ignore
-        assert response.data, expected_data  # type: ignore
+        response = api_client_with_auth.get(path=url)
+        assert response.status_code == HTTP_200_OK  # type: ignore
+        assert response.data == expected_data  # type: ignore
 
 
 @pytest.mark.django_db
@@ -117,7 +169,10 @@ class TestRetrieveAPI:
     Test the Retrieve API.
     """
 
-    def test_when_id_is_invalid_return_400(self):
+    def test_when_id_is_invalid_return_400(
+        self,
+        api_client_with_auth: APIClient,
+    ):
         """
         Test that the API returns 400 when the given ID is invalid.
 
@@ -128,15 +183,16 @@ class TestRetrieveAPI:
         """
 
         url = "/api/categories/123456789/"
-        response = APIClient().get(url)
+        response = api_client_with_auth.get(url)
 
-        assert response.status_code, HTTP_400_BAD_REQUEST  # type: ignore
+        assert response.status_code == HTTP_400_BAD_REQUEST  # type: ignore
 
     def test_return_category_when_exists(
         self,
         category_movie: Category,
         category_tv_show: Category,
         category_repository: DjangoORMCategoryRepository,
+        api_client_with_auth: APIClient,
     ):
         """
         Test that the API returns the expected category when the given ID exists.
@@ -160,11 +216,14 @@ class TestRetrieveAPI:
             }
         }
 
-        response = APIClient().get(url)
-        assert response.status_code, HTTP_200_OK  # type: ignore
+        response = api_client_with_auth.get(url)
+        assert response.status_code == HTTP_200_OK  # type: ignore
         assert response.data, expected_data  # type: ignore
 
-    def test_return_404_when_category_not_exists(self):
+    def test_return_404_when_category_not_exists(
+        self,
+        api_client_with_auth: APIClient,
+    ):
         """
         Test that the API returns 404 when the given ID does not exist.
 
@@ -176,8 +235,8 @@ class TestRetrieveAPI:
 
         url = f"/api/categories/{uuid.uuid4()}/"
 
-        response = APIClient().get(url)
-        assert response.status_code, HTTP_404_NOT_FOUND  # type: ignore
+        response = api_client_with_auth.get(url)
+        assert response.status_code == HTTP_404_NOT_FOUND  # type: ignore
 
 
 @pytest.mark.django_db
@@ -186,7 +245,10 @@ class TestCreateAPI:
     Test the Create API.
     """
 
-    def test_when_data_is_invalid_return_400(self):
+    def test_when_data_is_invalid_return_400(
+        self,
+        api_client_with_auth: APIClient,
+    ):
         """
         Test that the API returns 400 when the given data is invalid.
 
@@ -197,7 +259,7 @@ class TestCreateAPI:
         """
 
         url = "/api/categories/"
-        response = APIClient().post(
+        response = api_client_with_auth.post(
             path=url,
             data={
                 "name": "",
@@ -206,11 +268,12 @@ class TestCreateAPI:
             format="json",
         )
 
-        assert response.status_code, HTTP_400_BAD_REQUEST  # type: ignore
+        assert response.status_code == HTTP_400_BAD_REQUEST  # type: ignore
 
     def test_when_data_is_valid_return_201(
         self,
         category_repository: DjangoORMCategoryRepository,
+        api_client_with_auth: APIClient,
     ):
         """
         Test that the API returns 201 when the given data is valid.
@@ -222,7 +285,7 @@ class TestCreateAPI:
         """
 
         url = "/api/categories/"
-        response = APIClient().post(
+        response = api_client_with_auth.post(
             path=url,
             data={
                 "name": "Movies",
@@ -231,7 +294,7 @@ class TestCreateAPI:
             format="json",
         )
 
-        assert response.status_code, HTTP_201_CREATED  # type: ignore
+        assert response.status_code == HTTP_201_CREATED  # type: ignore
         created_category_id = uuid.UUID(response.data["id"])  # type: ignore
         assert category_repository.get_by_id(
             category_id=created_category_id
@@ -257,7 +320,10 @@ class TestUpdateAPI:
     Test the Update API.
     """
 
-    def test_when_payload_is_invalid_return_400(self):
+    def test_when_payload_is_invalid_return_400(
+        self,
+        api_client_with_auth: APIClient,
+    ):
         """
         Test that the API returns 400 when the given payload is invalid.
 
@@ -268,7 +334,7 @@ class TestUpdateAPI:
         """
 
         url = f"/api/categories/1234567890/"
-        response = APIClient().put(
+        response = api_client_with_auth.put(
             path=url,
             data={
                 "name": "",
@@ -277,7 +343,7 @@ class TestUpdateAPI:
             format="json",
         )
 
-        assert response.status_code, HTTP_400_BAD_REQUEST  # type: ignore
+        assert response.status_code == HTTP_400_BAD_REQUEST  # type: ignore
         assert response.data == {  # type: ignore
             "id": ["Must be a valid UUID."],
             "name": ["This field may not be blank."],
@@ -288,6 +354,7 @@ class TestUpdateAPI:
         self,
         category_movie: Category,
         category_repository: DjangoORMCategoryRepository,
+        api_client_with_auth: APIClient,
     ):
         """
         Test that the API returns 204 when the given payload is valid.
@@ -300,7 +367,7 @@ class TestUpdateAPI:
 
         category_repository.save(category_movie)
         url = f"/api/categories/{category_movie.id}/"
-        response = APIClient().put(
+        response = api_client_with_auth.put(
             path=url,
             data={
                 "name": "Movies 2",
@@ -310,14 +377,17 @@ class TestUpdateAPI:
             format="json",
         )
 
-        assert response.status_code, HTTP_204_NO_CONTENT  # type: ignore
+        assert response.status_code == HTTP_204_NO_CONTENT  # type: ignore
 
         updated_category = category_repository.get_by_id(category_movie.id)
         assert updated_category.name == "Movies 2"  # type: ignore
         assert updated_category.description == "Movies category updated"  # type: ignore
         assert updated_category.is_active is True  # type: ignore
 
-    def test_when_category_not_exists_return_404(self):
+    def test_when_category_not_exists_return_404(
+        self,
+        api_client_with_auth: APIClient,
+    ):
         """
         Test that the API returns 404 when the given ID does not exist.
 
@@ -328,7 +398,7 @@ class TestUpdateAPI:
         """
 
         url = f"/api/categories/{uuid.uuid4()}/"
-        response = APIClient().put(
+        response = api_client_with_auth.put(
             path=url,
             data={
                 "name": "Movies 2",
@@ -338,7 +408,7 @@ class TestUpdateAPI:
             format="json",
         )
 
-        assert response.status_code, HTTP_404_NOT_FOUND  # type: ignore
+        assert response.status_code == HTTP_404_NOT_FOUND  # type: ignore
 
 
 @pytest.mark.django_db
@@ -347,7 +417,10 @@ class TestDeleteAPI:
     Test the Delete API.
     """
 
-    def test_when_id_is_invalid_return_400(self):
+    def test_when_id_is_invalid_return_400(
+        self,
+        api_client_with_auth: APIClient,
+    ):
         """
         Test that the API returns 400 when the given ID is invalid.
 
@@ -358,12 +431,15 @@ class TestDeleteAPI:
         """
 
         url = "/api/categories/1234567890/"
-        response = APIClient().delete(url)
+        response = api_client_with_auth.delete(url)
 
-        assert response.status_code, HTTP_400_BAD_REQUEST  # type: ignore
+        assert response.status_code == HTTP_400_BAD_REQUEST  # type: ignore
         assert response.data == {"id": ["Must be a valid UUID."]}  # type: ignore
 
-    def test_when_category_not_exists_return_404(self):
+    def test_when_category_not_exists_return_404(
+        self,
+        api_client_with_auth: APIClient,
+    ):
         """
         Test that the API returns 404 when the given ID does not exist.
 
@@ -374,14 +450,15 @@ class TestDeleteAPI:
         """
 
         url = f"/api/categories/{uuid.uuid4()}/"
-        response = APIClient().delete(url)
+        response = api_client_with_auth.delete(url)
 
-        assert response.status_code, HTTP_404_NOT_FOUND  # type: ignore
+        assert response.status_code == HTTP_404_NOT_FOUND  # type: ignore
 
     def test_when_category_exists_return_204(
         self,
         category_movie: Category,
         category_repository: DjangoORMCategoryRepository,
+        api_client_with_auth: APIClient,
     ):
         """
         Test that the API returns 204 when the given ID exists.
@@ -394,9 +471,9 @@ class TestDeleteAPI:
 
         category_repository.save(category_movie)
         url = f"/api/categories/{category_movie.id}/"
-        response = APIClient().delete(url)
+        response = api_client_with_auth.delete(url)
 
-        assert response.status_code, HTTP_204_NO_CONTENT  # type: ignore
+        assert response.status_code == HTTP_204_NO_CONTENT  # type: ignore
         assert category_repository.get_by_id(category_movie.id) is None
 
 
@@ -406,7 +483,10 @@ class TestPartialUpdateAPI:
     Test the Partial Update API.
     """
 
-    def test_when_payload_is_invalid_return_400(self):
+    def test_when_payload_is_invalid_return_400(
+        self,
+        api_client_with_auth: APIClient,
+    ):
         """
         Test that the API returns 400 when the given payload is invalid.
 
@@ -417,7 +497,7 @@ class TestPartialUpdateAPI:
         """
 
         url = "/api/categories/1234567890/"
-        response = APIClient().patch(
+        response = api_client_with_auth.patch(
             path=url,
             data={
                 "name": "",
@@ -426,9 +506,12 @@ class TestPartialUpdateAPI:
             format="json",
         )
 
-        assert response.status_code, HTTP_400_BAD_REQUEST  # type: ignore
+        assert response.status_code == HTTP_400_BAD_REQUEST  # type: ignore
 
-    def test_when_category_not_exists_return_404(self):
+    def test_when_category_not_exists_return_404(
+        self,
+        api_client_with_auth: APIClient,
+    ):
         """
         Test that the API returns 404 when the given ID does not exist.
 
@@ -439,7 +522,7 @@ class TestPartialUpdateAPI:
         """
 
         url = f"/api/categories/{uuid.uuid4()}/"
-        response = APIClient().patch(
+        response = api_client_with_auth.patch(
             path=url,
             data={
                 "name": "Movies 2",
@@ -449,12 +532,13 @@ class TestPartialUpdateAPI:
             format="json",
         )
 
-        assert response.status_code, HTTP_404_NOT_FOUND  # type: ignore
+        assert response.status_code == HTTP_404_NOT_FOUND  # type: ignore
 
     def test_when_category_exists_update_only_name_and_return_204(
         self,
         category_movie: Category,
         category_repository: DjangoORMCategoryRepository,
+        api_client_with_auth: APIClient,
     ):
         """
         Test that the API returns 204 when the given ID exists and the name is updated.
@@ -466,14 +550,14 @@ class TestPartialUpdateAPI:
         """
         category_repository.save(category_movie)
         url = f"/api/categories/{category_movie.id}/"
-        response = APIClient().patch(
+        response = api_client_with_auth.patch(
             path=url,
             data={
                 "name": "Movies 2",
             },
         )
 
-        assert response.status_code, HTTP_204_NO_CONTENT  # type: ignore
+        assert response.status_code == HTTP_204_NO_CONTENT  # type: ignore
 
         partial_updated_category = category_repository.get_by_id(category_movie.id)
         assert partial_updated_category.name == "Movies 2"  # type: ignore
@@ -484,6 +568,7 @@ class TestPartialUpdateAPI:
         self,
         category_movie: Category,
         category_repository: DjangoORMCategoryRepository,
+        api_client_with_auth: APIClient,
     ):
         """
         Test that the API returns 204 when the given ID exists and the description is updated.
@@ -495,14 +580,14 @@ class TestPartialUpdateAPI:
         """
         category_repository.save(category_movie)
         url = f"/api/categories/{category_movie.id}/"
-        response = APIClient().patch(
+        response = api_client_with_auth.patch(
             path=url,
             data={
                 "description": "Movies category updated",
             },
         )
 
-        assert response.status_code, HTTP_204_NO_CONTENT  # type: ignore
+        assert response.status_code == HTTP_204_NO_CONTENT  # type: ignore
 
         partial_updated_category = category_repository.get_by_id(category_movie.id)
         assert partial_updated_category.name == category_movie.name  # type: ignore
@@ -513,6 +598,7 @@ class TestPartialUpdateAPI:
         self,
         category_movie: Category,
         category_repository: DjangoORMCategoryRepository,
+        api_client_with_auth: APIClient,
     ):
         """
         Test that the API returns 204 when the given ID exists and the is_active is updated.
@@ -524,14 +610,14 @@ class TestPartialUpdateAPI:
         """
         category_repository.save(category_movie)
         url = f"/api/categories/{category_movie.id}/"
-        response = APIClient().patch(
+        response = api_client_with_auth.patch(
             path=url,
             data={
                 "is_active": False,
             },
         )
 
-        assert response.status_code, HTTP_204_NO_CONTENT  # type: ignore
+        assert response.status_code == HTTP_204_NO_CONTENT  # type: ignore
 
         partial_updated_category = category_repository.get_by_id(category_movie.id)
         assert partial_updated_category.name == category_movie.name  # type: ignore
@@ -542,6 +628,7 @@ class TestPartialUpdateAPI:
         self,
         category_movie: Category,
         category_repository: DjangoORMCategoryRepository,
+        api_client_with_auth: APIClient,
     ):
         """
         Test that the API returns 204 when the given ID exists and all fields are updated.
@@ -553,7 +640,7 @@ class TestPartialUpdateAPI:
         """
         category_repository.save(category_movie)
         url = f"/api/categories/{category_movie.id}/"
-        response = APIClient().patch(
+        response = api_client_with_auth.patch(
             path=url,
             data={
                 "name": "Movies 2",
@@ -562,7 +649,7 @@ class TestPartialUpdateAPI:
             },
         )
 
-        assert response.status_code, HTTP_204_NO_CONTENT  # type: ignore
+        assert response.status_code == HTTP_204_NO_CONTENT  # type: ignore
 
         partial_updated_category = category_repository.get_by_id(category_movie.id)
         assert partial_updated_category.name == "Movies 2"  # type: ignore

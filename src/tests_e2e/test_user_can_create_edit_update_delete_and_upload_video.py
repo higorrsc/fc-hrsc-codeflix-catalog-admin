@@ -1,16 +1,7 @@
-import uuid
-
 import pytest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 from rest_framework.test import APIClient
-
-from src.core.cast_member.domain.cast_member import CastMember, CastMemberType
-from src.core.category.domain.category import Category
-from src.core.genre.domain.genre import Genre
-from src.django_project.cast_member_app.repository import DjangoORMCastMemberRepository
-from src.django_project.category_app.repository import DjangoORMCategoryRepository
-from src.django_project.genre_app.repository import DjangoORMGenreRepository
 
 
 @pytest.mark.django_db
@@ -19,7 +10,10 @@ class TestCreateEditUpdateDeleteAndUploadVideo:
     Test class for testing user can create, edit and delete a video with file upload
     """
 
-    def test_user_can_create_edit_update_delete_and_upload_video(self):
+    def test_user_can_create_edit_update_delete_and_upload_video(
+        self,
+        api_client_with_auth: APIClient,
+    ) -> None:
         """
         Verify that a user can create, edit, update, delete, and upload a video,
         and that the edited video data is correct.
@@ -29,56 +23,67 @@ class TestCreateEditUpdateDeleteAndUploadVideo:
         deleted.
         """
 
-        category_repository = DjangoORMCategoryRepository()
-        genre_repository = DjangoORMGenreRepository()
-        cast_member_repository = DjangoORMCastMemberRepository()
-
-        movie_category_id = uuid.uuid4()
-        genre_action_id = uuid.uuid4()
-        genre_adventure_id = uuid.uuid4()
-        cast_member_actor_id = uuid.uuid4()
-        cast_member_director_id = uuid.uuid4()
-
-        category_repository.save(
-            Category(
-                id=movie_category_id,
-                name="Movie",
-                description="Movies category",
-            )
+        category_response = api_client_with_auth.post(
+            path="/api/categories/",
+            data={
+                "name": "Movie",
+                "description": "Movies category",
+            },
+            format="json",
         )
+        assert category_response.status_code == HTTP_201_CREATED  # type: ignore
+        assert category_response.data["id"] is not None  # type: ignore
+        movie_category_id = category_response.data["id"]  # type: ignore
 
-        genre_repository.save(
-            Genre(
-                id=genre_action_id,
-                name="Action",
-                categories={movie_category_id},
-            )
+        genre_response = api_client_with_auth.post(
+            path="/api/genres/",
+            data={
+                "name": "Action",
+                "categories": [movie_category_id],
+            },
+            format="json",
         )
-        genre_repository.save(
-            Genre(
-                id=genre_adventure_id,
-                name="Adventure",
-                categories={movie_category_id},
-            )
-        )
+        assert genre_response.status_code == HTTP_201_CREATED  # type: ignore
+        assert genre_response.data["id"] is not None  # type: ignore
+        action_genre_id = genre_response.data["id"]  # type: ignore
 
-        cast_member_repository.save(
-            CastMember(
-                id=cast_member_actor_id,
-                name="Sam Worthington",
-                type=CastMemberType.ACTOR,
-            )
+        genre_response = api_client_with_auth.post(
+            path="/api/genres/",
+            data={
+                "name": "Adventure",
+                "categories": [movie_category_id],
+            },
+            format="json",
         )
-        cast_member_repository.save(
-            CastMember(
-                id=cast_member_director_id,
-                name="James Cameron",
-                type=CastMemberType.DIRECTOR,
-            )
-        )
+        assert genre_response.status_code == HTTP_201_CREATED  # type: ignore
+        assert genre_response.data["id"] is not None  # type: ignore
+        adventure_genre_id = genre_response.data["id"]  # type: ignore
 
-        api_client = APIClient()
-        list_response = api_client.get("/api/videos/")
+        actor_cast_member_response = api_client_with_auth.post(
+            path="/api/cast_members/",
+            data={
+                "name": "Sam Worthington",
+                "type": "ACTOR",
+            },
+            format="json",
+        )
+        assert actor_cast_member_response.status_code == HTTP_201_CREATED  # type: ignore
+        assert actor_cast_member_response.data["id"] is not None  # type: ignore
+        actor_cast_member_id = actor_cast_member_response.data["id"]  # type: ignore
+
+        director_cast_member_response = api_client_with_auth.post(
+            path="/api/cast_members/",
+            data={
+                "name": "James Cameron",
+                "type": "DIRECTOR",
+            },
+            format="json",
+        )
+        assert director_cast_member_response.status_code == HTTP_201_CREATED  # type: ignore
+        assert director_cast_member_response.data["id"] is not None  # type: ignore
+        director_cast_member_id = director_cast_member_response.data["id"]  # type: ignore
+
+        list_response = api_client_with_auth.get("/api/videos/")
         assert list_response.status_code == HTTP_200_OK  # type: ignore
 
         data = {
@@ -91,16 +96,16 @@ class TestCreateEditUpdateDeleteAndUploadVideo:
                 str(movie_category_id),
             ],
             "genres": [
-                str(genre_action_id),
-                str(genre_adventure_id),
+                str(action_genre_id),
+                str(adventure_genre_id),
             ],
             "cast_members": [
-                str(cast_member_actor_id),
-                str(cast_member_director_id),
+                str(actor_cast_member_id),
+                str(director_cast_member_id),
             ],
         }
 
-        create_response = api_client.post(
+        create_response = api_client_with_auth.post(
             path="/api/videos/",
             data=data,
             format="json",
@@ -110,7 +115,7 @@ class TestCreateEditUpdateDeleteAndUploadVideo:
 
         video_id = create_response.data["id"]  # type: ignore
 
-        list_response = api_client.get("/api/videos/")
+        list_response = api_client_with_auth.get("/api/videos/")
         assert list_response.status_code == HTTP_200_OK  # type: ignore
         assert len(list_response.data["data"]) == 1  # type: ignore
 
@@ -125,14 +130,14 @@ class TestCreateEditUpdateDeleteAndUploadVideo:
                 str(movie_category_id),
             ],
             "genres": [
-                str(genre_adventure_id),
+                str(adventure_genre_id),
             ],
             "cast_members": [
-                str(cast_member_director_id),
+                str(director_cast_member_id),
             ],
         }
 
-        update_response = api_client.put(
+        update_response = api_client_with_auth.put(
             path=f"/api/videos/{video_id}/",
             data=updated_data,
             format="json",
@@ -140,7 +145,7 @@ class TestCreateEditUpdateDeleteAndUploadVideo:
 
         assert update_response.status_code == HTTP_204_NO_CONTENT  # type: ignore
 
-        list_response = api_client.get("/api/videos/")
+        list_response = api_client_with_auth.get("/api/videos/")
         assert list_response.status_code == HTTP_200_OK  # type: ignore
         assert len(list_response.data["data"]) == 1  # type: ignore
         assert list_response.data["data"], updated_data  # type: ignore
@@ -153,16 +158,16 @@ class TestCreateEditUpdateDeleteAndUploadVideo:
         upload_data = {
             "video_file": upload_file,
         }
-        patch_response = api_client.patch(
+        patch_response = api_client_with_auth.patch(
             path=f"/api/videos/{video_id}/",
             data=upload_data,
             format="multipart",
         )
         assert patch_response.status_code == HTTP_200_OK  # type: ignore
 
-        delete_response = api_client.delete(path=f"/api/videos/{video_id}/")
+        delete_response = api_client_with_auth.delete(path=f"/api/videos/{video_id}/")
         assert delete_response.status_code == HTTP_204_NO_CONTENT  # type: ignore
 
-        list_response = api_client.get("/api/videos/")
+        list_response = api_client_with_auth.get("/api/videos/")
         assert list_response.status_code == HTTP_200_OK  # type: ignore
         assert len(list_response.data["data"]) == 0  # type: ignore
