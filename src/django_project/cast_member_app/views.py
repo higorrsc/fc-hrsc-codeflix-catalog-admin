@@ -31,6 +31,7 @@ from src.django_project.cast_member_app.serializers import (
     ListCastMemberResponseSerializer,
     UpdateCastMemberRequestSerializer,
 )
+from src.django_project.permissions import IsAdmin, IsAuthenticated
 from src.django_project.serializers import (
     CreateResponseSerializer,
     RetrieveDeleteRequestSerializer,
@@ -41,6 +42,8 @@ class CastMemberViewSet(viewsets.ViewSet):
     """
     CastMember ViewSet
     """
+
+    permission_classes = [IsAuthenticated, IsAdmin]
 
     def list(self, request: Request) -> Response:
         """

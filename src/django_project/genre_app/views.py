@@ -27,6 +27,7 @@ from src.django_project.genre_app.serializers import (
     ListGenreResponseSerializer,
     UpdateGenreRequestSerializer,
 )
+from src.django_project.permissions import IsAdmin, IsAuthenticated
 from src.django_project.serializers import (
     CreateResponseSerializer,
     RetrieveDeleteRequestSerializer,
@@ -38,6 +39,8 @@ class GenreViewSet(viewsets.ViewSet):
     """
     ViewSet for handling genre operations.
     """
+
+    permission_classes = [IsAuthenticated, IsAdmin]
 
     def list(self, request: Request) -> Response:
         """

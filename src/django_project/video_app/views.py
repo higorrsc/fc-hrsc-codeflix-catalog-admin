@@ -37,6 +37,7 @@ from src.core.video.application.use_cases.upload_video import UploadVideo
 from src.django_project.cast_member_app.repository import DjangoORMCastMemberRepository
 from src.django_project.category_app.repository import DjangoORMCategoryRepository
 from src.django_project.genre_app.repository import DjangoORMGenreRepository
+from src.django_project.permissions import IsAdmin, IsAuthenticated
 from src.django_project.serializers import (
     CreateResponseSerializer,
     RetrieveDeleteRequestSerializer,
@@ -55,6 +56,8 @@ class VideoViewSet(viewsets.ViewSet):
     """
     ViewSet for handling video operations.
     """
+
+    permission_classes = [IsAuthenticated, IsAdmin]
 
     def list(self, request: Request) -> Response:
         """
