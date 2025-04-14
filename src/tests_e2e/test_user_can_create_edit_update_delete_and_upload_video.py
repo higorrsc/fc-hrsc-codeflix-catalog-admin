@@ -10,7 +10,10 @@ class TestCreateEditUpdateDeleteAndUploadVideo:
     Test class for testing user can create, edit and delete a video with file upload
     """
 
-    def test_user_can_create_edit_update_delete_and_upload_video(self):
+    def test_user_can_create_edit_update_delete_and_upload_video(
+        self,
+        api_client_with_auth: APIClient,
+    ) -> None:
         """
         Verify that a user can create, edit, update, delete, and upload a video,
         and that the edited video data is correct.
@@ -20,9 +23,7 @@ class TestCreateEditUpdateDeleteAndUploadVideo:
         deleted.
         """
 
-        api_client = APIClient()
-
-        category_response = api_client.post(
+        category_response = api_client_with_auth.post(
             path="/api/categories/",
             data={
                 "name": "Movie",
@@ -34,7 +35,7 @@ class TestCreateEditUpdateDeleteAndUploadVideo:
         assert category_response.data["id"] is not None  # type: ignore
         movie_category_id = category_response.data["id"]  # type: ignore
 
-        genre_response = api_client.post(
+        genre_response = api_client_with_auth.post(
             path="/api/genres/",
             data={
                 "name": "Action",
@@ -46,7 +47,7 @@ class TestCreateEditUpdateDeleteAndUploadVideo:
         assert genre_response.data["id"] is not None  # type: ignore
         action_genre_id = genre_response.data["id"]  # type: ignore
 
-        genre_response = api_client.post(
+        genre_response = api_client_with_auth.post(
             path="/api/genres/",
             data={
                 "name": "Adventure",
@@ -58,7 +59,7 @@ class TestCreateEditUpdateDeleteAndUploadVideo:
         assert genre_response.data["id"] is not None  # type: ignore
         adventure_genre_id = genre_response.data["id"]  # type: ignore
 
-        actor_cast_member_response = api_client.post(
+        actor_cast_member_response = api_client_with_auth.post(
             path="/api/cast_members/",
             data={
                 "name": "Sam Worthington",
@@ -70,7 +71,7 @@ class TestCreateEditUpdateDeleteAndUploadVideo:
         assert actor_cast_member_response.data["id"] is not None  # type: ignore
         actor_cast_member_id = actor_cast_member_response.data["id"]  # type: ignore
 
-        director_cast_member_response = api_client.post(
+        director_cast_member_response = api_client_with_auth.post(
             path="/api/cast_members/",
             data={
                 "name": "James Cameron",
@@ -82,7 +83,7 @@ class TestCreateEditUpdateDeleteAndUploadVideo:
         assert director_cast_member_response.data["id"] is not None  # type: ignore
         director_cast_member_id = director_cast_member_response.data["id"]  # type: ignore
 
-        list_response = api_client.get("/api/videos/")
+        list_response = api_client_with_auth.get("/api/videos/")
         assert list_response.status_code == HTTP_200_OK  # type: ignore
 
         data = {
@@ -91,12 +92,20 @@ class TestCreateEditUpdateDeleteAndUploadVideo:
             "duration": 162,
             "launch_year": 2009,
             "rating": "AGE_14",
-            "categories": [movie_category_id],
-            "genres": [action_genre_id, adventure_genre_id],
-            "cast_members": [actor_cast_member_id, director_cast_member_id],
+            "categories": [
+                str(movie_category_id),
+            ],
+            "genres": [
+                str(action_genre_id),
+                str(adventure_genre_id),
+            ],
+            "cast_members": [
+                str(actor_cast_member_id),
+                str(director_cast_member_id),
+            ],
         }
 
-        create_response = api_client.post(
+        create_response = api_client_with_auth.post(
             path="/api/videos/",
             data=data,
             format="json",
@@ -106,7 +115,7 @@ class TestCreateEditUpdateDeleteAndUploadVideo:
 
         video_id = create_response.data["id"]  # type: ignore
 
-        list_response = api_client.get("/api/videos/")
+        list_response = api_client_with_auth.get("/api/videos/")
         assert list_response.status_code == HTTP_200_OK  # type: ignore
         assert len(list_response.data["data"]) == 1  # type: ignore
 
@@ -117,12 +126,18 @@ class TestCreateEditUpdateDeleteAndUploadVideo:
             "launch_year": 2009,
             "published": True,
             "rating": "AGE_14",
-            "categories": [movie_category_id],
-            "genres": [adventure_genre_id],
-            "cast_members": [director_cast_member_id],
+            "categories": [
+                str(movie_category_id),
+            ],
+            "genres": [
+                str(adventure_genre_id),
+            ],
+            "cast_members": [
+                str(director_cast_member_id),
+            ],
         }
 
-        update_response = api_client.put(
+        update_response = api_client_with_auth.put(
             path=f"/api/videos/{video_id}/",
             data=updated_data,
             format="json",
@@ -130,7 +145,7 @@ class TestCreateEditUpdateDeleteAndUploadVideo:
 
         assert update_response.status_code == HTTP_204_NO_CONTENT  # type: ignore
 
-        list_response = api_client.get("/api/videos/")
+        list_response = api_client_with_auth.get("/api/videos/")
         assert list_response.status_code == HTTP_200_OK  # type: ignore
         assert len(list_response.data["data"]) == 1  # type: ignore
         assert list_response.data["data"], updated_data  # type: ignore
@@ -143,16 +158,16 @@ class TestCreateEditUpdateDeleteAndUploadVideo:
         upload_data = {
             "video_file": upload_file,
         }
-        patch_response = api_client.patch(
+        patch_response = api_client_with_auth.patch(
             path=f"/api/videos/{video_id}/",
             data=upload_data,
             format="multipart",
         )
         assert patch_response.status_code == HTTP_200_OK  # type: ignore
 
-        delete_response = api_client.delete(path=f"/api/videos/{video_id}/")
+        delete_response = api_client_with_auth.delete(path=f"/api/videos/{video_id}/")
         assert delete_response.status_code == HTTP_204_NO_CONTENT  # type: ignore
 
-        list_response = api_client.get("/api/videos/")
+        list_response = api_client_with_auth.get("/api/videos/")
         assert list_response.status_code == HTTP_200_OK  # type: ignore
         assert len(list_response.data["data"]) == 0  # type: ignore

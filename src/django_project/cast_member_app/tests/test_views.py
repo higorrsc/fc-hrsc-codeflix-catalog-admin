@@ -1,3 +1,4 @@
+import os
 import uuid
 
 import pytest
@@ -11,6 +12,7 @@ from rest_framework.status import (
 from rest_framework.test import APIClient
 
 from src.config import DEFAULT_PAGE_SIZE
+from src.core._shared.infrastructure.auth.jwt_token_generator import JwtTokenGenerator
 from src.core.cast_member.domain.cast_member import CastMember, CastMemberType
 from src.django_project.cast_member_app.repository import DjangoORMCastMemberRepository
 
@@ -56,6 +58,55 @@ def cast_member_repository() -> DjangoORMCastMemberRepository:
     return DjangoORMCastMemberRepository()
 
 
+@pytest.fixture(scope="session", autouse=True)
+def setup_auth_env():
+    fake_auth = JwtTokenGenerator()
+    os.environ["AUTH_PUBLIC_KEY"] = (
+        fake_auth.public_key_pem.decode()
+        .replace("-----BEGIN PUBLIC KEY-----\n", "")
+        .replace("\n-----END PUBLIC KEY-----\n", "")
+    )
+    return fake_auth
+
+
+@pytest.fixture
+def auth_token(setup_auth_env):
+    return setup_auth_env.generate_token(
+        user_info={
+            "username": "admin",
+            "email": "admin@example.com",
+            "first_name": "Admin",
+            "last_name": "User",
+            "realm_roles": [
+                "offline_access",
+                "admin",
+                "uma_authorization",
+                "default-roles-codeflix",
+            ],
+            "resource_roles": [
+                "manage-account",
+                "view-profile",
+            ],
+        }
+    )
+
+
+@pytest.fixture
+def api_client_with_auth(auth_token):
+    """
+    Fixture for an API client with authentication.
+
+    Returns:
+        APIClient: An instance of the APIClient with the provided authentication token.
+    """
+
+    return APIClient(
+        headers={
+            "Authorization": f"Bearer {auth_token}",
+        }
+    )
+
+
 @pytest.mark.django_db
 class TestListAPI:
     """
@@ -67,6 +118,7 @@ class TestListAPI:
         actor_cast_member: CastMember,
         director_cast_member: CastMember,
         cast_member_repository: DjangoORMCastMemberRepository,
+        api_client_with_auth: APIClient,
     ):
         """
         Tests the ListCastMemberAPI view.
@@ -109,7 +161,7 @@ class TestListAPI:
         }
 
         url = "/api/cast_members/"
-        response = APIClient().get(url)
+        response = api_client_with_auth.get(url)
 
         assert response.status_code == HTTP_200_OK  # type: ignore
         assert response.data, expected_response  # type: ignore
@@ -124,6 +176,7 @@ class TestCreateAPI:
     def test_create_cast_member(
         self,
         cast_member_repository: DjangoORMCastMemberRepository,
+        api_client_with_auth: APIClient,
     ):
         """
         Tests the CreateCastMemberAPI view.
@@ -139,7 +192,7 @@ class TestCreateAPI:
 
         url = "/api/cast_members/"
         data = {"name": "Robert Downey Jr.", "type": "ACTOR"}
-        response = APIClient().post(
+        response = api_client_with_auth.post(
             path=url,
             data=data,
             format="json",
@@ -154,7 +207,10 @@ class TestCreateAPI:
         assert cast_member_model.name == "Robert Downey Jr."
         assert cast_member_model.type == "ACTOR"
 
-    def test_create_cast_member_with_empty_name(self):
+    def test_create_cast_member_with_empty_name(
+        self,
+        api_client_with_auth: APIClient,
+    ):
         """
         Tests that creating a cast member with an empty name raises a 400 BAD REQUEST
         with a JSON response containing an error message.
@@ -165,7 +221,7 @@ class TestCreateAPI:
 
         url = "/api/cast_members/"
         data = {"name": "", "type": "ACTOR"}
-        response = APIClient().post(
+        response = api_client_with_auth.post(
             path=url,
             data=data,
             format="json",
@@ -174,7 +230,10 @@ class TestCreateAPI:
         assert response.status_code == HTTP_400_BAD_REQUEST  # type: ignore
         assert response.data == {"name": ["This field may not be blank."]}  # type: ignore
 
-    def test_create_cast_member_with_invalid_type(self):
+    def test_create_cast_member_with_invalid_type(
+        self,
+        api_client_with_auth: APIClient,
+    ):
         """
         Tests that creating a cast member with an invalid type raises a 400 BAD REQUEST
         with a JSON response containing an error message.
@@ -185,7 +244,7 @@ class TestCreateAPI:
 
         url = "/api/cast_members/"
         data = {"name": "Robert Downey Jr.", "type": "INVALID_TYPE"}
-        response = APIClient().post(
+        response = api_client_with_auth.post(
             path=url,
             data=data,
             format="json",
@@ -204,6 +263,7 @@ class TestUpdateAPI:
     def test_update_cast_member(
         self,
         cast_member_repository: DjangoORMCastMemberRepository,
+        api_client_with_auth: APIClient,
     ):
         """
         Tests the UpdateCastMemberAPI view.
@@ -224,7 +284,7 @@ class TestUpdateAPI:
         cast_member_repository.save(cast_member)
 
         url = f"/api/cast_members/{cast_member.id}/"
-        response = APIClient().put(
+        response = api_client_with_auth.put(
             path=url,
             data={
                 "name": "Cristian Bale",
@@ -241,7 +301,10 @@ class TestUpdateAPI:
         assert cast_member_model.name == "Cristian Bale"
         assert cast_member_model.type == "ACTOR"
 
-    def test_update_cast_member_with_invalid_id(self):
+    def test_update_cast_member_with_invalid_id(
+        self,
+        api_client_with_auth: APIClient,
+    ):
         """
         Tests that updating a cast member with an invalid id raises a 400 BAD REQUEST
         with a JSON response containing an error message.
@@ -251,7 +314,7 @@ class TestUpdateAPI:
         """
 
         url = f"/api/cast_members/{uuid.uuid4()}/"
-        response = APIClient().put(
+        response = api_client_with_auth.put(
             path=url,
             data={
                 "name": "Cristian Bale",
@@ -266,6 +329,7 @@ class TestUpdateAPI:
     def test_update_cast_member_with_empty_name(
         self,
         cast_member_repository: DjangoORMCastMemberRepository,
+        api_client_with_auth: APIClient,
     ):
         """
         Tests that updating a cast member with an empty name raises a 400 BAD REQUEST
@@ -282,7 +346,7 @@ class TestUpdateAPI:
         cast_member_repository.save(cast_member)
 
         url = f"/api/cast_members/{cast_member.id}/"
-        response = APIClient().put(
+        response = api_client_with_auth.put(
             path=url,
             data={
                 "name": "",
@@ -297,6 +361,7 @@ class TestUpdateAPI:
     def test_update_cast_member_with_invalid_type(
         self,
         cast_member_repository: DjangoORMCastMemberRepository,
+        api_client_with_auth: APIClient,
     ):
         """
         Tests that updating a cast member with an invalid type raises a 400 BAD REQUEST
@@ -313,7 +378,7 @@ class TestUpdateAPI:
         cast_member_repository.save(cast_member)
 
         url = f"/api/cast_members/{cast_member.id}/"
-        response = APIClient().put(
+        response = api_client_with_auth.put(
             path=url,
             data={
                 "name": "Cristian Bale",
@@ -335,6 +400,7 @@ class TestDeleteAPI:
     def test_delete_cast_member(
         self,
         cast_member_repository: DjangoORMCastMemberRepository,
+        api_client_with_auth: APIClient,
     ):
         """
         Tests the DeleteCastMemberAPI view.
@@ -354,12 +420,15 @@ class TestDeleteAPI:
         cast_member_repository.save(cast_member)
 
         url = f"/api/cast_members/{cast_member.id}/"
-        response = APIClient().delete(url)
+        response = api_client_with_auth.delete(url)
 
         assert response.status_code == HTTP_204_NO_CONTENT  # type: ignore
         assert cast_member_repository.get_by_id(cast_member.id) is None
 
-    def test_delete_cast_member_with_invalid_id(self):
+    def test_delete_cast_member_with_invalid_id(
+        self,
+        api_client_with_auth: APIClient,
+    ):
         """
         Tests that deleting a cast member with an invalid id raises a 404 NOT FOUND
         with a JSON response containing an error message.
@@ -369,7 +438,7 @@ class TestDeleteAPI:
         """
 
         url = f"/api/cast_members/{uuid.uuid4()}/"
-        response = APIClient().delete(url)
+        response = api_client_with_auth.delete(url)
 
         assert response.status_code == HTTP_404_NOT_FOUND  # type: ignore
         assert response.data == {"detail": "Cast member not found"}  # type: ignore

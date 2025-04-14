@@ -16,7 +16,9 @@ class TestCreateAndEditCastMember:
     Test class for testing user can create, edit and delete a cast member
     """
 
-    def test_user_can_create_edit_and_delete_cast_member(self) -> None:
+    def test_user_can_create_edit_and_delete_cast_member(
+        self, api_client_with_auth: APIClient
+    ) -> None:
         """
         Verify that a user can create, edit and delete a cast member, and that the edited
         cast member data is correct.
@@ -26,12 +28,10 @@ class TestCreateAndEditCastMember:
         was deleted.
         """
 
-        api_client = APIClient()
-
-        list_response = api_client.get("/api/cast_members/")
+        list_response = api_client_with_auth.get("/api/cast_members/")
         assert list_response.status_code == HTTP_200_OK  # type: ignore
 
-        create_response = api_client.post(
+        create_response = api_client_with_auth.post(
             path="/api/cast_members/",
             data={"name": "Robert Downey Jr.", "type": "ACTOR"},
             format="json",
@@ -39,7 +39,7 @@ class TestCreateAndEditCastMember:
         assert create_response.status_code == HTTP_201_CREATED  # type: ignore
         cast_member_response_id = create_response.data["id"]  # type: ignore
 
-        list_response = api_client.get("/api/cast_members/")
+        list_response = api_client_with_auth.get("/api/cast_members/")
         assert list_response.status_code == HTTP_200_OK  # type: ignore
         assert len(list_response.data["data"]) == 1  # type: ignore
         assert list_response.data == {  # type: ignore
@@ -57,7 +57,7 @@ class TestCreateAndEditCastMember:
             },
         }
 
-        update_response = api_client.put(
+        update_response = api_client_with_auth.put(
             path=f"/api/cast_members/{cast_member_response_id}/",
             data={
                 "name": "Cristian Bale",
@@ -67,15 +67,15 @@ class TestCreateAndEditCastMember:
         )
         assert update_response.status_code == HTTP_204_NO_CONTENT  # type: ignore
 
-        delete_response = api_client.delete(
+        delete_response = api_client_with_auth.delete(
             f"/api/cast_members/{cast_member_response_id}/"
         )
         assert delete_response.status_code == HTTP_204_NO_CONTENT  # type: ignore
 
-        list_response = api_client.get("/api/cast_members/")
+        list_response = api_client_with_auth.get("/api/cast_members/")
         assert list_response.status_code == HTTP_200_OK  # type: ignore
 
-        update_response = api_client.put(
+        update_response = api_client_with_auth.put(
             path=f"/api/cast_members/{cast_member_response_id}/",
             data={
                 "name": "Cristian Bale",
@@ -85,7 +85,7 @@ class TestCreateAndEditCastMember:
         )
         assert update_response.status_code == HTTP_404_NOT_FOUND  # type: ignore
 
-        delete_response = api_client.delete(
+        delete_response = api_client_with_auth.delete(
             f"/api/cast_members/{cast_member_response_id}/"
         )
         assert delete_response.status_code == HTTP_404_NOT_FOUND  # type: ignore
