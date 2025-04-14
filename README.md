@@ -33,7 +33,7 @@ O Consumer sendo inciado fora do teste implica no uso do banco de dados de "prod
 
 ![Chamada do Consumer a partir do teste](.github/images/pytest_consumer_started.png)
 
-### Producer enviando a mensagem de novo vídeo
+### Producer enviando a mensagem de novo vídeo convertido
 
 ![Chamada do Producer a partir do teste](.github/images/pytest_producer_publish.png)
 
