@@ -1,7 +1,9 @@
+import os
 import uuid
 
 import pytest
 from rest_framework.status import (
+    HTTP_200_OK,
     HTTP_201_CREATED,
     HTTP_204_NO_CONTENT,
     HTTP_400_BAD_REQUEST,
@@ -10,6 +12,7 @@ from rest_framework.status import (
 from rest_framework.test import APIClient
 
 from src.config import DEFAULT_PAGE_SIZE
+from src.core._shared.infrastructure.auth.jwt_token_generator import JwtTokenGenerator
 from src.core.category.domain.category import Category
 from src.core.genre.domain.genre import Genre
 from src.django_project.category_app.repository import DjangoORMCategoryRepository
@@ -115,6 +118,55 @@ def genre_repository() -> DjangoORMGenreRepository:
     return DjangoORMGenreRepository()
 
 
+@pytest.fixture(scope="session", autouse=True)
+def setup_auth_env():
+    fake_auth = JwtTokenGenerator()
+    os.environ["AUTH_PUBLIC_KEY"] = (
+        fake_auth.public_key_pem.decode()
+        .replace("-----BEGIN PUBLIC KEY-----\n", "")
+        .replace("\n-----END PUBLIC KEY-----\n", "")
+    )
+    return fake_auth
+
+
+@pytest.fixture
+def auth_token(setup_auth_env):
+    return setup_auth_env.generate_token(
+        user_info={
+            "username": "admin",
+            "email": "admin@example.com",
+            "first_name": "Admin",
+            "last_name": "User",
+            "realm_roles": [
+                "offline_access",
+                "admin",
+                "uma_authorization",
+                "default-roles-codeflix",
+            ],
+            "resource_roles": [
+                "manage-account",
+                "view-profile",
+            ],
+        }
+    )
+
+
+@pytest.fixture
+def api_client_with_auth(auth_token):
+    """
+    Fixture for an API client with authentication.
+
+    Returns:
+        APIClient: An instance of the APIClient with the provided authentication token.
+    """
+
+    return APIClient(
+        headers={
+            "Authorization": f"Bearer {auth_token}",
+        }
+    )
+
+
 @pytest.mark.django_db
 class TestListAPI:
     """
@@ -129,6 +181,7 @@ class TestListAPI:
         documentary_category: Category,
         movie_category: Category,
         category_repository: DjangoORMCategoryRepository,
+        api_client_with_auth: APIClient,
     ):
         """
         Tests the ListGenreAPI view.
@@ -153,9 +206,8 @@ class TestListAPI:
         genre_repository.save(drama_genre)
 
         url = "/api/genres/"
-        response = APIClient().get(url)
+        response = api_client_with_auth.get(url)
 
-        # TODO: implement order before assert
         expected_response = {
             "data": [
                 {
@@ -180,21 +232,9 @@ class TestListAPI:
                 "total": 2,
             },
         }
-        assert response.data, expected_response  # type: ignore
 
-        # assert response.status_code == HTTP_200_OK  # type: ignore
-        # assert response.data["data"]  # type: ignore
-        # assert response.data["data"][0]["id"] == str(drama.id)  # type: ignore
-        # assert response.data["data"][0]["name"] == "Romance"  # type: ignore
-        # assert response.data["data"][0]["is_active"] is True  # type: ignore
-        # assert set(response.data["data"][0]["categories"]) == {  # type: ignore
-        #     str(documentary_category.id),
-        #     str(movie_category.id),
-        # }
-        # assert response.data["data"][1]["id"] == str(drama_genre.id)  # type: ignore
-        # assert response.data["data"][1]["name"] == "Drama"  # type: ignore
-        # assert response.data["data"][1]["is_active"] is True  # type: ignore
-        # assert response.data["data"][1]["categories"] == []  # type: ignore
+        assert response.status_code == HTTP_200_OK  # type: ignore
+        assert response.data, expected_response  # type: ignore
 
 
 @pytest.mark.django_db
@@ -209,6 +249,7 @@ class TestCreateAPI:
         documentary_category: Category,
         category_repository: DjangoORMCategoryRepository,
         genre_repository: DjangoORMGenreRepository,
+        api_client_with_auth: APIClient,
     ):
         """
         Test that the API returns 201 when creating a genre with associated categories.
@@ -229,7 +270,7 @@ class TestCreateAPI:
                 str(documentary_category.id),
             ],
         }
-        response = APIClient().post(
+        response = api_client_with_auth.post(
             path=url,
             data=data,
             format="json",
@@ -249,7 +290,10 @@ class TestCreateAPI:
             categories=set(genre_model.categories),  # type: ignore
         )
 
-    def test_create_genre_without_name(self):
+    def test_create_genre_without_name(
+        self,
+        api_client_with_auth: APIClient,
+    ):
         """
         Test that the API returns 400 when creating a genre without a name.
 
@@ -265,7 +309,7 @@ class TestCreateAPI:
         data = {
             "name": "",
         }
-        response = APIClient().post(
+        response = api_client_with_auth.post(
             path=url,
             data=data,
             format="json",
@@ -274,7 +318,10 @@ class TestCreateAPI:
         assert response.status_code == HTTP_400_BAD_REQUEST  # type: ignore
         assert response.data == {"name": ["This field may not be blank."]}  # type: ignore
 
-    def test_create_genre_with_invalid_categories(self):
+    def test_create_genre_with_invalid_categories(
+        self,
+        api_client_with_auth: APIClient,
+    ):
         """
         Test that the API returns 400 when creating a genre with invalid category IDs.
 
@@ -291,7 +338,7 @@ class TestCreateAPI:
             "name": "Anime",
             "categories": [uuid.uuid4()],
         }
-        response = APIClient().post(
+        response = api_client_with_auth.post(
             path=url,
             data=data,
             format="json",
@@ -307,7 +354,10 @@ class TestDeleteAPI:
     Class for testing the DeleteGenreAPI view.
     """
 
-    def test_when_genre_not_exists_return_404(self):
+    def test_when_genre_not_exists_return_404(
+        self,
+        api_client_with_auth: APIClient,
+    ):
         """
         Test that the API returns 404 when the given genre ID does not exist.
 
@@ -319,12 +369,15 @@ class TestDeleteAPI:
         """
 
         url = f"/api/genres/{uuid.uuid4()}/"
-        response = APIClient().delete(url)
+        response = api_client_with_auth.delete(url)
 
         assert response.status_code == HTTP_404_NOT_FOUND  # type: ignore
         assert response.data == {"error": "Genre not found"}  # type: ignore
 
-    def test_when_genre_id_is_invalid_return_400(self):
+    def test_when_genre_id_is_invalid_return_400(
+        self,
+        api_client_with_auth: APIClient,
+    ):
         """
         Test that the API returns 400 when the given genre ID is invalid.
 
@@ -336,13 +389,14 @@ class TestDeleteAPI:
         """
 
         url = "/api/genres/1234567890/"
-        response = APIClient().delete(url)
+        response = api_client_with_auth.delete(url)
 
         assert response.status_code == HTTP_400_BAD_REQUEST  # type: ignore
 
     def test_when_genre_is_deleted_return_204(
         self,
         genre_repository: DjangoORMGenreRepository,
+        api_client_with_auth: APIClient,
     ):
         """
         Test that the API returns 204 when the given genre ID exists and is deleted.
@@ -358,7 +412,7 @@ class TestDeleteAPI:
         genre_repository.save(genre)
 
         url = f"/api/genres/{genre.id}/"
-        response = APIClient().delete(url)
+        response = api_client_with_auth.delete(url)
         assert response.status_code == HTTP_204_NO_CONTENT  # type: ignore
 
         genre_model = genre_repository.get_by_id(genre_id=genre.id)
@@ -376,6 +430,7 @@ class TestUpdateAPI:
         genre_repository: DjangoORMGenreRepository,
         movie_category: Category,
         category_repository: DjangoORMCategoryRepository,
+        api_client_with_auth: APIClient,
     ):
         """
         Test that the API returns 204 when the given genre ID exists and the request
@@ -401,7 +456,7 @@ class TestUpdateAPI:
         }
 
         url = f"/api/genres/{genre.id}/"
-        response = APIClient().put(
+        response = api_client_with_auth.put(
             path=url,
             data=data,
             format="json",
@@ -422,6 +477,7 @@ class TestUpdateAPI:
         genre_repository: DjangoORMGenreRepository,
         movie_category: Category,
         category_repository: DjangoORMCategoryRepository,
+        api_client_with_auth: APIClient,
     ):
         """
         Test that the API returns 400 when the given request data is invalid.
@@ -445,7 +501,7 @@ class TestUpdateAPI:
         }
 
         url = f"/api/genres/{genre.id}/"
-        response = APIClient().put(
+        response = api_client_with_auth.put(
             path=url,
             data=data,
             format="json",
@@ -457,6 +513,7 @@ class TestUpdateAPI:
     def test_when_related_categories_do_not_exist_then_return_400(
         self,
         genre_repository: DjangoORMGenreRepository,
+        api_client_with_auth: APIClient,
     ):
         """
         Test that the API returns 400 when the given request data contains
@@ -480,7 +537,7 @@ class TestUpdateAPI:
         }
 
         url = f"/api/genres/{genre.id}/"
-        response = APIClient().put(
+        response = api_client_with_auth.put(
             path=url,
             data=data,
             format="json",
@@ -489,7 +546,10 @@ class TestUpdateAPI:
         assert response.status_code == HTTP_400_BAD_REQUEST  # type: ignore
         assert response.data == {"error": "Related categories not found"}  # type: ignore
 
-    def test_when_genre_does_not_exist_then_return_404(self):
+    def test_when_genre_does_not_exist_then_return_404(
+        self,
+        api_client_with_auth: APIClient,
+    ):
         """
         Test that the API returns 404 when attempting to update a genre that does not exist.
 
@@ -508,7 +568,7 @@ class TestUpdateAPI:
         }
 
         url = f"/api/genres/{uuid.uuid4()}/"
-        response = APIClient().put(
+        response = api_client_with_auth.put(
             path=url,
             data=data,
             format="json",
